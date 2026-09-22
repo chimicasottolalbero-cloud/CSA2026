@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Chimica sotto l'Albero 2026</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icona-192.png">
+<link rel="apple-touch-icon" href="icona-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CSA 2026">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blu:#2B2D55; --azzurro:#E7F3FA; --rosso:#A23F30; --rosato:#F6ECE9;
+    --grigio:#9A9AA0; --linea:#E2E2E6; --testo:#2B2B2B;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 150px)}
+  body{margin:0;background:#fff;color:var(--testo);
+    font-family:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.4;
+    padding-bottom:env(safe-area-inset-bottom,0px)}
+  .wrap{max-width:720px;margin:0 auto;padding:0 14px}
+
+  /* intestazione come gli altri riquadri del sito */
+  header.top{padding:calc(env(safe-area-inset-top,0px) + 16px) 14px 4px}
+  header.top h1{margin:0;font-family:"Playfair Display",Georgia,serif;font-size:23px;font-weight:600;color:var(--blu)}
+  header.top p{margin:0;font-size:14px;color:var(--rosso);font-weight:600}
+  .stato{font-size:12px;color:var(--grigio);margin-top:2px}
+
+  .avviso{margin:10px 0 0;padding:8px 12px;border-radius:8px;background:var(--rosato);color:var(--rosso);font-size:14px}
+
+  /* pannello "ora in corso" */
+  .live{margin-top:12px}
+  .live h2{margin:0 0 6px;font-family:"Playfair Display",Georgia,serif;font-size:18px;font-weight:600;color:var(--rosso);
+    display:flex;align-items:center;gap:8px}
+  .live h2 .punto{width:8px;height:8px;border-radius:50%;background:var(--rosso);animation:pulsa 1.6s infinite}
+  @keyframes pulsa{50%{opacity:.25}}
+  @media (prefers-reduced-motion:reduce){.live h2 .punto{animation:none}}
+  .live small.prog{font-family:"Open Sans",system-ui,sans-serif;font-size:12px;font-weight:400;color:var(--grigio);margin-left:auto}
+  .carte{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+  .carta{border-radius:10px;padding:10px 12px;background:var(--rosato)}
+  .carta:nth-child(2){background:var(--azzurro)}
+  .carta .sala{font-size:12.5px;font-weight:600;color:#66666c;display:flex;justify-content:space-between;gap:6px}
+  .carta .rit{color:var(--rosso)}
+  .carta .ora-tit{margin-top:3px;font-family:"Playfair Display",Georgia,serif;font-size:16px;font-weight:600;color:var(--blu);line-height:1.25;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .carta .chi{font-size:13.5px;margin-top:2px}
+  .carta .poi{margin-top:6px;font-size:12.5px;color:#66666c}
+  .carta .poi b{color:var(--testo)}
+  .carta.vuota .ora-tit{font-family:"Open Sans",system-ui,sans-serif;font-size:14px;font-weight:400;color:#66666c}
+
+  /* barra fissa: giorni come i tasti delle quote, sale come etichette */
+  .barra{position:sticky;top:0;z-index:5;background:#fff;padding:10px 0 8px;margin-top:12px;
+    padding-top:calc(env(safe-area-inset-top,0px) + 10px);border-bottom:1px solid var(--linea)}
+  .schede{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+  .schede button{border:1.5px solid var(--linea);background:#fff;border-radius:8px;padding:7px 4px;font:inherit;font-size:15px;
+    font-weight:600;color:var(--testo);cursor:pointer}
+  .schede button.on{background:var(--rosso);border-color:var(--rosso);color:#fff}
+  .filtri{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+  .filtri::-webkit-scrollbar{display:none}
+  .filtri button{flex:none;border:0;background:var(--azzurro);border-radius:12px;padding:4px 12px;font:inherit;font-size:13px;color:var(--blu);cursor:pointer}
+  .filtri button.on{background:var(--blu);color:#fff}
+  .cerca{margin-top:8px;position:relative}
+  .cerca input{width:100%;border:1px solid var(--linea);border-radius:6px;padding:7px 32px 7px 10px;font:inherit;font-size:16px;background:#fff}
+  .cerca button{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:18px;color:var(--grigio);cursor:pointer;padding:4px 8px}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--blu);outline-offset:1px}
+
+  /* elenco, nello stile delle righe delle quote */
+  main{padding:6px 0 30px}
+  .blocco{margin-top:14px}
+  .intest{padding:0 0 4px;border-bottom:2px solid var(--blu)}
+  .intest.s1{border-bottom-color:var(--rosso)}
+  .intest .nome{font-family:"Playfair Display",Georgia,serif;font-size:18px;font-weight:600;color:var(--blu)}
+  .intest .dett{font-size:12.5px;color:#66666c}
+  .intest .dett b{font-weight:600;color:var(--blu)}
+  .intest.s1 .dett b{color:var(--rosso)}
+  .voce{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--linea)}
+  .gruppo .voce:first-child{border-top:0}
+  .ora{flex:none;width:44px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--blu)}
+  .ora s{display:block;font-weight:400;font-size:11.5px;color:var(--grigio)}
+  .corpo{min-width:0;flex:1}
+  .tit{font-weight:600;line-height:1.3}
+  .rel{font-size:13.5px;margin-top:2px}
+  .rel b{font-weight:600}
+  .aff{color:#66666c}
+  .nota{font-size:12.5px;color:#66666c;margin-top:3px}
+  .tag{font-family:"Open Sans",system-ui,sans-serif;display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;margin-right:6px;vertical-align:1px;white-space:nowrap}
+  .t-OR{background:var(--azzurro);color:var(--blu)}
+  .t-FL{background:var(--rosato);color:var(--rosso)}
+  .t-PL,.t-GS{background:var(--rosso);color:#fff}
+  .t-SP{background:var(--azzurro);color:var(--blu)}
+  .t-P{background:var(--rosato);color:var(--rosso)}
+  .comune .voce{border-top:0}
+  .comune.pausa{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea)}
+  .comune.pausa .tit{font-weight:400;color:#66666c;font-style:italic}
+  .comune.speciale{background:var(--rosato);border-radius:10px;padding:0 12px}
+  .comune.speciale .tit{font-family:"Playfair Display",Georgia,serif;font-size:16.5px;color:var(--blu)}
+  .voce.passata{opacity:.45}
+  .voce.incorso{background:var(--rosato);border-radius:8px;margin:0 -8px;padding-left:8px;padding-right:8px}
+  .voce.incorso .ora{color:var(--rosso)}
+  .badge{display:inline-block;font-size:11px;font-weight:600;color:#fff;background:var(--rosso);border-radius:10px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+  .vuoto{padding:30px 10px;text-align:center;color:#66666c}
+  .sessp h3{margin:16px 0 4px;font-family:"Playfair Display",Georgia,serif;font-size:18px;font-weight:600;color:var(--blu);
+    padding-bottom:4px;border-bottom:2px solid var(--blu)}
+  .risultati-tit{font-size:13px;color:#66666c;margin:10px 0 4px}
+  .quando{font-size:12px;color:var(--rosso);font-weight:600;margin-bottom:1px}
+  footer{font-size:12px;color:var(--grigio);text-align:center;padding:10px 0 24px}
+  /* ===== app ===== */
+  body{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 64px)}
+  header.top{display:flex;align-items:center;gap:12px}
+  header.top img{height:46px;width:auto}
+  header.top .testi{min-width:0}
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;border-top:1px solid var(--linea);
+    padding-bottom:env(safe-area-inset-bottom,0px)}
+  .nav .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+  .nav button{border:0;background:none;padding:7px 2px 6px;font:inherit;font-size:11.5px;color:#66666c;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:2px}
+  .nav button svg{width:22px;height:22px}
+  .nav button.on{color:var(--rosso);font-weight:600}
+  .nav .conta{position:absolute;margin-left:18px;margin-top:-2px;min-width:16px;height:16px;border-radius:8px;background:var(--rosso);
+    color:#fff;font-size:10px;line-height:16px;padding:0 4px}
+  .nav button{position:relative}
+
+  .stella{flex:none;align-self:flex-start;border:0;background:none;padding:2px 0 4px 4px;cursor:pointer;color:#C9C9CE}
+  .stella svg{width:22px;height:22px;display:block}
+  .stella.on{color:var(--rosso)}
+  .stella.on svg path{fill:currentColor}
+
+  .titolo-vista{margin:16px 0 2px;font-family:"Playfair Display",Georgia,serif;font-size:22px;font-weight:600;color:var(--blu)}
+  .sotto-vista{margin:0 0 6px;font-size:13.5px;color:#66666c}
+  .giorno-mio{margin:14px 0 2px;font-weight:600;color:var(--rosso)}
+  .conflitto{font-size:12px;color:var(--rosso);font-weight:600;margin-top:2px}
+
+  .info-voce{padding:12px 0;border-top:1px solid var(--linea)}
+  .info-voce h3{margin:0;font-family:"Playfair Display",Georgia,serif;font-size:17px;font-weight:600;color:var(--blu)}
+  .info-voce p{margin:3px 0 0;white-space:pre-line}
+  .info-voce a.link{display:inline-block;margin-top:6px;padding:6px 12px;border-radius:4px;background:var(--rosso);color:#fff;
+    text-decoration:none;font-weight:600;font-size:14px}
+
+  .installa{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--azzurro);display:flex;gap:10px;align-items:center}
+  .installa p{margin:0;font-size:13.5px;flex:1;color:var(--blu)}
+  .installa button{border:0;border-radius:4px;padding:7px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .installa .si{background:var(--rosso);color:#fff}
+  .installa .no{background:none;color:#66666c;padding:7px 4px}
+  .pdf{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13.5px;font-weight:600;color:var(--rosso);text-decoration:none}
+  .pdf::before{content:"";width:14px;height:14px;background:currentColor;
+    -webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>') center/contain no-repeat;
+    mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>') center/contain no-repeat}
+  .tuo{margin-top:8px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--rosso);font-size:13.5px}
+  .tuo b{color:var(--rosso)}
+</style>
+</head>
+<body>
+<header class="top wrap">
+  <img src="logo.png" alt="" onerror="this.remove()">
+  <div class="testi">
+    <h1 id="h1">Chimica sotto l'Albero</h1>
+    <p id="date"></p>
+    <div class="stato" id="stato"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="installa"></div>
+  <div id="avviso"></div>
+  <section class="live" id="live" hidden></section>
+
+  <div class="barra" id="barra">
+    <div class="schede" id="schede"></div>
+    <div class="filtri" id="filtri"></div>
+    <div class="cerca">
+      <input id="q" type="text" enterkeyhint="search" placeholder="Cerca relatore, titolo o codice" aria-label="Cerca nel programma" autocomplete="off">
+      <button id="qx" aria-label="Cancella ricerca" hidden>×</button>
+    </div>
+  </div>
+
+  <a class="pdf" id="pdf" target="_blank" rel="noopener" hidden>Scarica il programma in PDF</a>
+  <main id="lista"></main>
+  <footer id="piede"></footer>
+</div>
+
+<nav class="nav" aria-label="Sezioni"><div class="in">
+  <button data-v="prog" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Programma</button>
+  <button data-v="mio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Il mio<span class="conta" id="conta" hidden></span></button>
+  <button data-v="poster"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>Poster</button>
+  <button data-v="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</button>
+</div></nav>
+
+<script>
+/* ================== IMPOSTAZIONI ================== */
+
+// ID del Foglio Google: è la parte dell'indirizzo tra /d/ e /edit.
+// Se resta vuoto, l'app usa i dati di prova dell'edizione 2025.
+const SHEET_ID = "";
+
+// Ogni quanti secondi rileggere ritardi e avvisi (scheda Live)
+const AGGIORNA_LIVE = 60;
+// Ogni quanti minuti rileggere programma, poster e info
+const AGGIORNA_TUTTO = 10;
+
+// Link al programma in PDF (per chi preferisce scaricarlo). Se resta vuoto il pulsante non compare.
+const PDF_PROGRAMMA = "";
+
+// Durata predefinita in minuti quando la colonna Fine è vuota
+const DURATA = {OR:15, FL:5, SP:10, PL:30, GS:30};
+
+// Per le prove: aggiungi all'indirizzo ?ora=2025-12-18T10:10
+
+/* ================================================== */
+
+const DEMO = {"Programma":[{"Giorno":"2025-12-18","Ora":"08:15","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Registration","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-18","Ora":"09:00","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Welcome and opening ceremony","Relatore":"","Affiliazione":"","Note":"Antonio Monopoli (Presidente SCI Puglia), Vito Gallo (Delegato alla ricerca POLIBA), Elisa Capozzi (Presidentessa Confindustria Chimica Bari-BAT), Angela Agostiano (Presidentessa EuChemS)"},{"Giorno":"2025-12-18","Ora":"09:20","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"GS 01","Titolo":"Miti ed eroi della tavola periodica","Relatore":"Piero Mastrorilli","Affiliazione":"Politecnico di Bari","Note":""},{"Giorno":"2025-12-18","Ora":"09:50","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"OR 01","Titolo":"Design, Physicochemical Characterization, and Potential Applications of Sustainable Multifunctional Self-Assembled Materials","Relatore":"Jennifer Gubitosa","Affiliazione":"CNR-Nanotec & Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"09:50","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"OR 06","Titolo":"Structural Biology Toward hClpP Druggability for Pediatric Diffuse Midline Glioma","Relatore":"Domenico Armenise","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:05","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"OR 02","Titolo":"Beyond Conventional Superabsorbent Plastics: Optimization of Absorption Properties of Porcine Plasma Protein Bioplastics via Salt Addition","Relatore":"Stefano Liotino","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:05","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"OR 07","Titolo":"Tetrahydropyridopyrimidindiones as Next-Generation ClpP Activators for Pediatric Diffuse Intrinsic Pontine Glioma Therapy","Relatore":"Olga Maria Baldelli","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:20","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"OR 03","Titolo":"Atomic Layer Deposition of PET–ZnO and PET–ZnO/Cu Thin Films for Active Packaging: Toward Extended Food Shelf Life","Relatore":"Regina Del Sole","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:20","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"OR 08","Titolo":"Lead optimization: a set of promising 18F-radiolabeled P-gp ligands for PET studies","Relatore":"Anna Teresa Lisi","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:35","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"OR 04","Titolo":"EMI Shielding Material from Grape Marc: Byproduct Valorization in Biomass-Derived Graphitic Carbon Production","Relatore":"Stefano Dicorato","Affiliazione":"CNR-Nanotec","Note":""},{"Giorno":"2025-12-18","Ora":"10:35","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"OR 09","Titolo":"Assessing the Antitumor Activity of Dinuclear Platinum–Bisphosphonate Agents for Selective Treatment of Bone Metastases by In Vitro and Ex Vivo Models","Relatore":"Anna Maria Di Cosola","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:50","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"OR 05","Titolo":"Singlet Diradicaloid-Based Interlayers for n-Type Passivation in CsPbI₃ Perovskite Solar Cells","Relatore":"Vincenzo Tedeschi","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"10:50","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"OR 10","Titolo":"3D Bioprinting of Alginate–Gelatin Hydrogels With Lipid Nanoparticles for Localized Drug Delivery in Glioblastoma Therapy","Relatore":"Asaam R.M. Eljahesh","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"11:05","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"FL 01","Titolo":"Role of Size Tunability of Gold Nanoparticles in Biophotocurrent Generation by NanoparticlesModified Bacteria","Relatore":"Umberto Mattia","Affiliazione":"Politecnico di Bari","Note":""},{"Giorno":"2025-12-18","Ora":"11:05","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"FL 03","Titolo":"Evaluation of the Effects of Halogens on the Anti-Cholinesterase Activity of Potent Multi-Targeted Hybrids Designed for the Treatment of Alzheimer’s Disease","Relatore":"Marco Cerini","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"11:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Antonio Monopoli, Piero Mastrorilli","Codice":"FL 02","Titolo":"Magnetic Diatoms as Bio-Based Cellular Shuttles","Relatore":"Cesar Vicente-Garcia","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"11:10","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Angela Stefanachi, Leonardo Pisani","Codice":"FL 04","Titolo":"Innovative Microencapsulation of Amphotericin B for Enhanced Oral Delivery in Cystic Fibrosis","Relatore":"Vita D'Amico","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"11:15","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Coffee break","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-18","Ora":"11:45","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"OR 11","Titolo":"Analytical Characterization of Gellan Gum-Based Hydrogel Loaded With Tannic Acid for Cartilage Tissue Engineering","Relatore":"Francesco Busto","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"11:45","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"OR 17","Titolo":"Light-Controlled Modulation of Serotonin 5-HT₇ Receptor: Design, Synthesis, and Characterization of Novel Photocaged Ligands","Relatore":"Fabio Francavilla","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"12:00","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"OR 12","Titolo":"One-Pot Polydopamine-Assisted Method for Reliable PQQ-GDH Immobilization on Graphite Electrodes for Glucose Detection","Relatore":"Alessandra Cimino","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"12:00","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"OR 18","Titolo":"Anthropogenic Microparticles in Sea Salts From Mediterranean and Atlantic Ocean Salt Pans: A Comparative Study","Relatore":"Cristina Grazia De Nido","Affiliazione":"Università degli Studi di Foggia","Note":""},{"Giorno":"2025-12-18","Ora":"12:15","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"OR 13","Titolo":"Methylated Choline Acetate as Green Medium for Heck Reaction With Highly Recyclable Pd@Slag Catalyst","Relatore":"Tommaso Castiglia","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"12:15","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"OR 19","Titolo":"A Sustainable and Semi-Synthetic Strategy for the Discovery of Novel Multi-Target Anti-Alzheimer’s Agents","Relatore":"Rosalba Leuci","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"12:30","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"OR 14","Titolo":"Bioinspired Polydopamine Interfaces for Efficient Electron Communication With Photosynthetic Bacteria","Relatore":"Claudia Zonno","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"12:30","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"OR 20","Titolo":"Development of Positron Emission Tomography radiotracers for imaging Sigma-1 receptors in CNS diseases","Relatore":"Francesco Mastropasqua","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"12:45","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"OR 15","Titolo":"Structural and Synthetic Developments in BiOX Nanocrystals: Toward Scalable Production and MetalCation Intercalation","Relatore":"Ornella Cuofano","Affiliazione":"CNR-Nanotec","Note":""},{"Giorno":"2025-12-18","Ora":"12:45","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"OR 21","Titolo":"Enhanced Chelating Agents With Multi-Target Activity Potentially Useful for the Treatment of Alzheimer’s Disease","Relatore":"Marco Paparella","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"13:00","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"OR 16","Titolo":"From Graphene Powder to Lab-on-Chip: Solvent-Free Fabrication of Graphene-Based Electrodes via Mechanochemical Functionalization","Relatore":"Roberta Di Maio","Affiliazione":"CNR-Nanotec","Note":""},{"Giorno":"2025-12-18","Ora":"13:00","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"OR 22","Titolo":"Novel 2-Chlorobenzamide P2X7R Antagonists Enhance CB2R-Mediated Anti-Inflammatory Responses","Relatore":"Imane Ghafir El Idrissi","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"13:15","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"FL 05","Titolo":"Ionic Liquid-Assisted Growth for Defect Suppression in CsPbBr₃ Single Crystals","Relatore":"Francesco Saverio Difeo","Affiliazione":"CNR-Nanotec","Note":""},{"Giorno":"2025-12-18","Ora":"13:15","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"FL 09","Titolo":"Sigma-2 Receptor Agonists in the Treatment of Gastric Cancer","Relatore":"Mariachiara Mammone","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"13:20","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"FL 06","Titolo":"Inulin Depolymerization Promoted by H₃PO₄ in Batch Reactor","Relatore":"Annamaria Acquaviva","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"13:20","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"FL 10","Titolo":"Utilization of Hydrophobic Deep Eutectic Solvents in Liquid-Phase Microextraction of Environmental Contaminants from Human Urine","Relatore":"Nicola Garofalo","Affiliazione":"Università del Salento","Note":""},{"Giorno":"2025-12-18","Ora":"13:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"FL 07","Titolo":"A comparison of Online and Offline XRT Techniques for Measuring Atmospheric PM 10","Relatore":"Giuseppe Deluca","Affiliazione":"CNR-ISAC (Istituto di Scienze dell’Atmosfera e del Clima)","Note":""},{"Giorno":"2025-12-18","Ora":"13:25","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"FL 11","Titolo":"Comparative Evaluation of Quercetin-Loaded Chitosan Nanoparticles From Insect and Crustacean Sources","Relatore":"Luigi Capasso","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"13:30","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Nicola Cioffi, Emilia Paone","Codice":"FL 08","Titolo":"Photocatalytic Depolymerization of Lignin Using MoO₃-Based Catalysts","Relatore":"Elena Teresa Palombella","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"13:30","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session","Chair":"Marialessandra Contino, Giuseppe Felice Mangiatordi","Codice":"FL 12","Titolo":"A Multi-Platform Metabolomics Approach for the Characterization of Novel Dietary Fiber-Based Ingredients","Relatore":"Andrea Fuso","Affiliazione":"Università degli Studi di Parma","Note":""},{"Giorno":"2025-12-18","Ora":"13:35","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Lunch & Poster Session (P01 – P30)","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-18","Ora":"14:55","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"PL 01","Titolo":"From Optimized to Adaptive – Multifunctional Catalytic Systems at a Dynamic and Variable ChemistryEnergy Nexus","Relatore":"Alexis Bordet","Affiliazione":"Max Planck Institute for Chemical Energy Conversion, Mülheim an der Ruhr","Note":""},{"Giorno":"2025-12-18","Ora":"15:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 1","Chair":"Antonio Monopoli, Renzo Luisi","Codice":"OR 23","Titolo":"Static vs Dynamic Life Cycle Assessment: Considerations on Carbon Emission Accounting in WoodenBased Flooring Material","Relatore":"Federico Bedogni","Affiliazione":"Alma Mater Studiorum - Università di Bologna","Note":""},{"Giorno":"2025-12-18","Ora":"15:25","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 1","Chair":"Federico Fanti, Valeria Nardelli","Codice":"OR 28","Titolo":"Multitoxin Analysis of Trichothecenes, Including NX Toxins, in Rice and Wheat","Relatore":"Alessandro Annunziato","Affiliazione":"CNR-ISPA (Istituto di Scienze delle Produzioni Alimentari)","Note":""},{"Giorno":"2025-12-18","Ora":"15:40","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 1","Chair":"Antonio Monopoli, Renzo Luisi","Codice":"OR 24","Titolo":"Exploiting Flow Chemistry for the Generation of Cyclopropenyllithium and Their Functionalization","Relatore":"Francesco Soddu","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"15:40","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 1","Chair":"Federico Fanti, Valeria Nardelli","Codice":"OR 29","Titolo":"Investigating the Presence of 8 PAHs in Smoked Food by Means of GC–MS/MS","Relatore":"Ines Della Rovere","Affiliazione":"Istituto Zooprofilattico Sperimentale di Puglia e Basilicata","Note":""},{"Giorno":"2025-12-18","Ora":"15:55","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 1","Chair":"Antonio Monopoli, Renzo Luisi","Codice":"OR 25","Titolo":"Electrochemical Reforming of Alcohols for the Co-Production of Green Hydrogen and Valuable Organic Compounds: Analytical Characterisation of Ruthenium-Based Molecular Catalysts","Relatore":"Marco Bonechi","Affiliazione":"Università degli Studi di Firenze","Note":""},{"Giorno":"2025-12-18","Ora":"15:55","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 1","Chair":"Federico Fanti, Valeria Nardelli","Codice":"OR 30","Titolo":"Metabolomic Characterization of Saffron Using UHPLC-Q-Orbitrap-HRMS and Machine Learning for Traceability Assessment","Relatore":"Fabiola Eugelio","Affiliazione":"Università degli Studi di Teramo","Note":""},{"Giorno":"2025-12-18","Ora":"16:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 1","Chair":"Antonio Monopoli, Renzo Luisi","Codice":"OR 26","Titolo":"Synthesis and Rapid Quantification of Phase-Pure Vaterite for Industrial Waste Valorization and CO₂ Emission Mitigation","Relatore":"Annamaria Catalano","Affiliazione":"Alma Mater Studiorum - Università di Bologna","Note":""},{"Giorno":"2025-12-18","Ora":"16:10","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 1","Chair":"Federico Fanti, Valeria Nardelli","Codice":"OR 31","Titolo":"Optimizing Accelerated Solvent Extraction for the Study of Dioxins and Total Lipid Content of Italian Goat Ricotta Cheese","Relatore":"Rosalia Zianni","Affiliazione":"Istituto Zooprofilattico Sperimentale di Puglia e Basilicata","Note":""},{"Giorno":"2025-12-18","Ora":"16:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 1","Chair":"Antonio Monopoli, Renzo Luisi","Codice":"OR 27","Titolo":"Composites g-C₃N₄/Hydrochar/Black Mass Obtained From Spent Li-Ion Batteries for Enhanced Photoreforming of Organics To Obtain Hydrogen","Relatore":"Narimene Aoun","Affiliazione":"Università degli Studi di Palermo","Note":""},{"Giorno":"2025-12-18","Ora":"16:25","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 1","Chair":"Federico Fanti, Valeria Nardelli","Codice":"OR 32","Titolo":"Grape Seed Oil From Montepulciano d’Abruzzo Grape Seeds: Green Extraction, In Vitro and In Vivo Biological Evaluation","Relatore":"Lorenza Marinaccio","Affiliazione":"Università degli Studi \"G. d'Annunzio\" Chieti-Pescara","Note":""},{"Giorno":"2025-12-18","Ora":"16:40","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Coffee break","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-18","Ora":"17:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"OR 33","Titolo":"Magnetoliposomes Application for Water Remediation","Relatore":"Francesca Commito","Affiliazione":"Università degli Studi dell'Aquila","Note":""},{"Giorno":"2025-12-18","Ora":"17:10","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"OR 37","Titolo":"Impact of Experimental Parameters on Total Phenolic Content and Antioxidant Activity of Extracts Obtained from Agri-Food Wastes and Evaluation of the Antibiofilm Activity","Relatore":"Anna Maria Maurelli","Affiliazione":"CNR-ISA (Istituto di Scienze dell’Alimentazione)","Note":""},{"Giorno":"2025-12-18","Ora":"17:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"OR 34","Titolo":"SupraDES-Assisted Extraction of Organic Molecules From Aqueous Environment: A Preliminary Study","Relatore":"Carmine Bellantoni","Affiliazione":"Università degli Studi di Messina","Note":""},{"Giorno":"2025-12-18","Ora":"17:25","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"OR 38","Titolo":"Deep Eutectic Solvents-Based Extracts From Grape Pomace for the Production of Green Alternative Food and Feed Supplements","Relatore":"Vincenzo Roselli","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"17:40","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"FL 13","Titolo":"Blast Furnace Slag Geopolymer for Water Remediation: An ESCAPE Approach","Relatore":"Stefano Savino","Affiliazione":"CNR-ICCOM (Istituto di Chimica dei Composti Organometallici)","Note":""},{"Giorno":"2025-12-18","Ora":"17:40","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"FL 16","Titolo":"Fast and Green Extraction Method Based on HS–SPME/GC–MS to Explore New Chemical Markers of X-Ray-Irradiated Hen Eggs","Relatore":"Andrea Chiappinelli","Affiliazione":"Istituto Zooprofilattico Sperimentale di Puglia e Basilicata","Note":""},{"Giorno":"2025-12-18","Ora":"17:45","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"FL 14","Titolo":"Ethanol to Gasoline and Sustainable Aviation Fuel Precursors: An Innovative Cascade Strategy over Zr-Based Multifunctional Catalysts in the Gas Phase","Relatore":"Maria Pagliara","Affiliazione":"Alma Mater Studiorum - Università di Bologna","Note":""},{"Giorno":"2025-12-18","Ora":"17:45","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"FL 17","Titolo":"Validation of a New Green Extraction Method Based on Natural Deep Eutectic Solvents for Bisphenols and Alkylphenols in Solid Foods","Relatore":"Lucia Croce","Affiliazione":"Università degli Studi di Foggia","Note":""},{"Giorno":"2025-12-18","Ora":"17:50","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"FL 15","Titolo":"Enzyme-Inspired Ligand for Copper-Mediated C–H Bond Activation","Relatore":"Maria Sara Scatigna","Affiliazione":"Università degli Studi di Torino","Note":""},{"Giorno":"2025-12-18","Ora":"17:50","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"FL 18","Titolo":"Investigation on Volatile Compounds in Dehydrated Extracts of Paprika by HS–SPME/GC–MS","Relatore":"Alessandra Como","Affiliazione":"Università degli Studi di Foggia","Note":""},{"Giorno":"2025-12-18","Ora":"17:55","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"OR 35","Titolo":"A Hybrid Hydrodynamic Cavitation and Cold Plasma Approach for Efficient Degradation of Contaminants of Emerging Concern in Water","Relatore":"Nicolò Desogus","Affiliazione":"Università degli Studi di Torino","Note":""},{"Giorno":"2025-12-18","Ora":"17:55","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"FL 19","Titolo":"¹H NMR Metabolomics of Tomato: Sustainable Fertilization To Make Peace With the Soil","Relatore":"Beatrice Fracasso","Affiliazione":"Università del Salento","Note":""},{"Giorno":"2025-12-18","Ora":"18:00","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"OR 39","Titolo":"From Hull to Flour: Mapping the Polyphenolic Profile of Fagopyrum esculentum","Relatore":"Angelica Spano","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"18:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session 2","Chair":"Antonio Monopoli","Codice":"OR 36","Titolo":"Screening of Agro-Food Biomass Wastes for the Preparation of Biochar and Activated Carbons for Hydrogen Storage","Relatore":"Sara Paraboschi","Affiliazione":"Università degli Studi di Pavia","Note":""},{"Giorno":"2025-12-18","Ora":"18:15","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session 2","Chair":"Cosima Damiana Calvano, Rosalia Zianni","Codice":"OR 40","Titolo":"Influence of the Oxidant on Band Structure and Charge Transport in Benzothiadiazole-Based Conjugated Polymers Prepared by oCVD","Relatore":"Sara Lotito","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-18","Ora":"20:00","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Social dinner at Seconda Classe","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-19","Ora":"09:00","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 41","Titolo":"NIR Dyes and Organic Electrolytes for Transparent Dye-Sensitized Solar Cells","Relatore":"Donato Pasculli","Affiliazione":"Università degli Studi di Torino","Note":""},{"Giorno":"2025-12-19","Ora":"09:00","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 49","Titolo":"Immune Cell Membrane-Derived Vesicles as Smart Nanovectors for Gene Delivery","Relatore":"Claudia Leone","Affiliazione":"Università del Salento & CNR-Nanotec","Note":""},{"Giorno":"2025-12-19","Ora":"09:15","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 42","Titolo":"Flexible Strain Sensors for Real-Time Monitoring of Vessels Deformation","Relatore":"Domenico Genchi","Affiliazione":"Istituto Italiano di Tecnologia","Note":""},{"Giorno":"2025-12-19","Ora":"09:15","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 50","Titolo":"Advanced Analytical Strategies in the NARCOSIS Platform: A Bridge to Tackling Emerging New Psychoactive Substances Threats","Relatore":"Erika Castrignanò","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"09:30","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 43","Titolo":"Morphology-Controlled Ce–Ti Composite Surfaces via Hydrothermal Synthesis for Improved Electrochemical Properties","Relatore":"Chiara Frezza","Affiliazione":"Università degli Studi di Roma Tre","Note":""},{"Giorno":"2025-12-19","Ora":"09:30","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 51","Titolo":"Drug-Likeness Optimization of Potent Ureidopropanamide-Based Formyl Peptide Receptor 2 (FPR2) Agonists With Biological Activity in Gastric Cancer Cell Models","Relatore":"Daniele Vitone","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"09:45","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 44","Titolo":"Noble Metals Doping in Lead-Free Double Perovskite Single Crystals: Achieving Near-Infrared to XRay Broadband Photodetection","Relatore":"Donato Valli","Affiliazione":"Università degli Studi di Padova","Note":""},{"Giorno":"2025-12-19","Ora":"09:45","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 52","Titolo":"Bioinformatic Analysis of the Purinergic P2X7 Receptor Co-Expression Networks in Tumors","Relatore":"Angela Santo","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"10:00","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 45","Titolo":"Development of Hybrid Cathodes for Sustainable Batteries","Relatore":"Giuseppe Mianulli","Affiliazione":"Università del Salento & CNR-Nanotec","Note":""},{"Giorno":"2025-12-19","Ora":"10:00","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 53","Titolo":"Cancer-Related Extracellular Vesicle Detection Using an Electrochemical Magneto-Assay Powered by Microfluidics","Relatore":"Patrick Severin Sfragano","Affiliazione":"Università degli Studi di Firenze","Note":""},{"Giorno":"2025-12-19","Ora":"10:15","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 46","Titolo":"Building Function Through Bonds: NIR-Emitting DNA–Ag Nanoclusters","Relatore":"Giacomo Romolini","Affiliazione":"Università di Copenhagen","Note":""},{"Giorno":"2025-12-19","Ora":"10:15","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 54","Titolo":"Enhancing Single-Molecule-With-a-Large-Transistor (SiMoT) Platform Reliability Through PCA-Based Multivariate Quality Control","Relatore":"Valentina Mongelli","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"10:30","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 47","Titolo":"Mechanochemical System Comparison for Efficient Catalytic Polyethylene Upcycling","Relatore":"Antonio Cosimo Pio Trimboli","Affiliazione":"Università degli Studi Mediterranea di Reggio Calabria","Note":""},{"Giorno":"2025-12-19","Ora":"10:30","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 55","Titolo":"CUPID: An Explainable and Open Drug Discovery Platform for the Assessment of Multi-Ion-Channel Cardiotoxicity","Relatore":"Vincenzo Amenduni","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"10:45","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 1","Chair":"Livia Giotta, Paolo Bollella","Codice":"OR 48","Titolo":"3D-Printable Hybrid Nanocomposite Scintillators for High-Energy Radiation Detection","Relatore":"Daniele Godi","Affiliazione":"CNR-Nanotec","Note":""},{"Giorno":"2025-12-19","Ora":"10:45","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 1","Chair":"Maurizio Quinto, Rosaria Anna Picca","Codice":"OR 56","Titolo":"Study of the Interactions Between Mesoporous Silica Nanoparticles and Bovine Serum Albumin (BSA) at Isoelectric Point","Relatore":"Gaia Maria Meloni","Affiliazione":"Università degli Studi di Cagliari","Note":""},{"Giorno":"2025-12-19","Ora":"11:00","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Coffee break","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-19","Ora":"11:30","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"SP 01","Titolo":"Monoclorammina: nuove frontiere per il contenimento della legionella e di altri patogeni nelle reti di distribuzione di acqua destinata al consumo umano e animale","Relatore":"Marco Gatti","Affiliazione":"AQUAPROX ITALIA","Note":""},{"Giorno":"2025-12-19","Ora":"11:40","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"PL 02","Titolo":"Single-Molecule with a Large Surface (SiMoLS): a Paradigm Shift in Ultra-Sensitive Label-Free Biosensing","Relatore":"Luisa Torsi","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"12:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Maurizio Quinto, Gian Paolo Suranna","Codice":"OR 57","Titolo":"Advancing Encapsulation for Perovskite Solar Cells With a Room-Temperature Processable and Stable Resin","Relatore":"Lucia Mercurio","Affiliazione":"Università del Salento","Note":""},{"Giorno":"2025-12-19","Ora":"12:10","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"OR 63","Titolo":"Environmental Pollution and Asthma: EXPOSOMIC Approach","Relatore":"Chiara Maccari","Affiliazione":"Università degli Studi di Parma","Note":""},{"Giorno":"2025-12-19","Ora":"12:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Maurizio Quinto, Gian Paolo Suranna","Codice":"OR 58","Titolo":"Iron-Promoted Kumada Cross-Couplings in Deep Eutectic Solvents Under Mild Conditions","Relatore":"Maristella Simone","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"12:25","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"FL 20","Titolo":"Applying Molecular Networking Tools To Assess the Environmental Impact of Textile Fibre Degradation","Relatore":"Alessandro Becchi","Affiliazione":"Università degli Studi di Milano-Bicocca","Note":""},{"Giorno":"2025-12-19","Ora":"12:30","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"FL 21","Titolo":"Mass Spectrometry for Stress Ecology Studies: Application of a Portable 3D Ion Trap To Detect BioOrganic Volatiles in the Marine Environment","Relatore":"Tommaso Gatti","Affiliazione":"Università degli Studi di Milano-Bicocca","Note":""},{"Giorno":"2025-12-19","Ora":"12:35","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"FL 22","Titolo":"Selective and Accessible Saxitoxin Detection in Shellfish Through Potentiometric Analysis and Gold Nanoparticle-Based Colorimetric Biosensing","Relatore":"Emanuela Maiorano","Affiliazione":"Alma Mater Studiorum - Università di Bologna","Note":""},{"Giorno":"2025-12-19","Ora":"12:40","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Maurizio Quinto, Gian Paolo Suranna","Codice":"OR 59","Titolo":"Jet Deposition of Antimicrobic Zinc-Based Nanocomposite Thin Films","Relatore":"Marianna Roggio","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"12:40","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"OR 64","Titolo":"Sigma-1 Receptor Fluorescent Compounds: Useful Tools for Biological Assays","Relatore":"Gabriella Rosanna Musillo","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"12:55","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Maurizio Quinto, Gian Paolo Suranna","Codice":"OR 60","Titolo":"Cobalt Porphyrins Substituted with Cl, F, Br, and Methoxy Groups Anchored on TiO₂ Surface as Photocatalysts in a Liquid–Solid Regime","Relatore":"Aouatef M'barek","Affiliazione":"Faculty of Sciences of Monastir, University of Monastir, Tunisia.","Note":""},{"Giorno":"2025-12-19","Ora":"12:55","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"OR 65","Titolo":"Fundamental Understanding on Perfume–Chitosan Interactions To Improve Perfume Microencapsulation Versatility","Relatore":"Serena Napoletano","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"13:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Maurizio Quinto, Gian Paolo Suranna","Codice":"OR 61","Titolo":"Selective Conversion of Methanol Toward Dimethyl Ether over Zeolite ZSM-5 Loaded with Copper Revered from Printed Circuit Boards","Relatore":"Francesca Derobertis","Affiliazione":"Politecnico di Bari","Note":""},{"Giorno":"2025-12-19","Ora":"13:10","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"OR 66","Titolo":"Metalloproteinases, Histone Deacetylases, and Sigma Receptors for Multimodal Therapy in Uveal Melanoma","Relatore":"Gabriella La Spada","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"13:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Morning Session 2","Chair":"Maurizio Quinto, Gian Paolo Suranna","Codice":"OR 62","Titolo":"Cs₃Bi₂Br₉ Microcrystals: Structure–Activity Relationships in Visible-Light-Driven Oxidation of Benzyl and Secondary Alcohols","Relatore":"Daniele Conelli","Affiliazione":"Politecnico di Bari","Note":""},{"Giorno":"2025-12-19","Ora":"13:25","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"FL 23","Titolo":"AID-CARE: Artificial Intelligence-aided Design of CAnnabinoid REceptor subtype 2 (CB2R) Multitarget ligands: a new strategy for the treatment of inflammation","Relatore":"Giovanni Graziano","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"13:30","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"FL 24","Titolo":"Unveiling the Amino Acid Profile of Apulian Barattieri (Cucumis melo L.) Through Green Extraction and HILIC–ESI–HRMS Analysis","Relatore":"Davide Coniglio","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"13:35","Fine":"","Sala":"Sala lettura","Sessione":"Morning Session 2","Chair":"Massimo Trotta, Gianvito Vilè","Codice":"FL 25","Titolo":"Lipidomic signatures of PDAC vs healthy cells and their Evs","Relatore":"Vito Nettis","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"13:40","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Lunch & Poster Session (P31 – P61)","Relatore":"","Affiliazione":"","Note":""},{"Giorno":"2025-12-19","Ora":"14:45","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"SP 02","Titolo":"Impiego di nacocompositi di grafene ossido in sample clean-up di matrici ambientali. Un esempio di collaborazione fra Università ed impresa","Relatore":"Antonio Fornaro","Affiliazione":"LabService","Note":""},{"Giorno":"2025-12-19","Ora":"14:55","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"PL 03","Titolo":"Understanding Chronic and Infectious Diseases Through Proteomics—From Method Development to Biological Applications","Relatore":"Giuseppe Palmisano","Affiliazione":"University Sao Paulo","Note":""},{"Giorno":"2025-12-19","Ora":"15:25","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session","Chair":"Lucia Curri, Maria Michela Dell’Anna","Codice":"OR 67","Titolo":"Skeletal Editing of Cyclopropenyl Carbinols To Synthesize Oxaspiro[2.3]hex-4-ene","Relatore":"Iktedar Mahdi","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"15:25","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session","Chair":"Emilia Paone, Luciana Cicco","Codice":"OR 72","Titolo":"Ligand-Driven Allosteric Rearrangements of the Sigma-1 Receptor Revealed by Molecular Dynamics","Relatore":"Vittoria Nanna","Affiliazione":"CNR","Note":""},{"Giorno":"2025-12-19","Ora":"15:40","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session","Chair":"Lucia Curri, Maria Michela Dell’Anna","Codice":"OR 68","Titolo":"Polyurethane Foams From Waste Cooking Oil","Relatore":"Alessia Iennaco","Affiliazione":"Politecnico di Bari","Note":""},{"Giorno":"2025-12-19","Ora":"15:40","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session","Chair":"Emilia Paone, Luciana Cicco","Codice":"OR 73","Titolo":"Application of HMDI–α-CD-MOF in Water Remediation: Adsorption of Textile Dyes","Relatore":"Domenico Cignolo","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"15:55","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session","Chair":"Lucia Curri, Maria Michela Dell’Anna","Codice":"OR 69","Titolo":"Engineering Au/CeO₂ Interfaces on MSN Supports for Enhanced CO Oxidation","Relatore":"Pierluigi Lasala","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"15:55","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session","Chair":"Emilia Paone, Luciana Cicco","Codice":"FL 27","Titolo":"Silk Fibroin as a Ligand for Iron-Catalyzed Epoxidation Reactions","Relatore":"Carola Ricciardelli","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"16:00","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session","Chair":"Emilia Paone, Luciana Cicco","Codice":"OR 74","Titolo":"Photosynthetic Bacteria-Based Electrode for Current Generation in Saline Media","Relatore":"Dario Lacalamita","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"16:10","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session","Chair":"Lucia Curri, Maria Michela Dell’Anna","Codice":"FL 26","Titolo":"Tuning the Electro-Optical Properties of Mixed-Halide Trityl Radicals Bearing para-Brominated Positions Through Halogen Substitution","Relatore":"Davide Mesto","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"16:15","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session","Chair":"Lucia Curri, Maria Michela Dell’Anna","Codice":"OR 70","Titolo":"Photoredox-catalyzed decarboxylation for Sustainable Organic Synthesis in Batch and Flow","Relatore":"Francesco Pasca","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"16:15","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session","Chair":"Emilia Paone, Luciana Cicco","Codice":"OR 75","Titolo":"Investigating Novel Bis-Coumarin-Bearing Phenolic Mannich Bases as Potential Multimodal Agents for the Treatment of Alzheimer’s Disease","Relatore":"Caterina Deruvo","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"16:30","Fine":"","Sala":"Sala videoconferenze","Sessione":"Afternoon Session","Chair":"Lucia Curri, Maria Michela Dell’Anna","Codice":"OR 71","Titolo":"Sustainable Flexible Electrodes for Remote ON/OFF Genetic Cargo Release","Relatore":"Blanca Maria Iolanda Cassano","Affiliazione":"Università degli Studi di Bari Aldo Moro","Note":""},{"Giorno":"2025-12-19","Ora":"16:30","Fine":"","Sala":"Sala lettura","Sessione":"Afternoon Session","Chair":"Emilia Paone, Luciana Cicco","Codice":"OR 76","Titolo":"High Precision Quantification of Betaine in Cereal-Based Matrices by 1H NMR","Relatore":"Maria Trisolini","Affiliazione":"Politecnico di Bari","Note":""},{"Giorno":"2025-12-19","Ora":"16:45","Fine":"","Sala":"Tutte","Sessione":"","Chair":"","Codice":"","Titolo":"Awards ceremony and closing of the congress","Relatore":"","Affiliazione":"","Note":"Christmas greetings with Panettone & Spumante"}],"Poster":[{"Codice":"P 01","Sessione poster":"1","Titolo":"From Time–Frequency to Radiometry: Wavelet-Resolved Doped-Cherenkov Signatures for Accurate ²¹⁰Po Quantification","Autore":"Michele Nicolini","Affiliazione":"Istituto Zooprofilattico Sperimentale di Puglia e Basilicata"},{"Codice":"P 02","Sessione poster":"1","Titolo":"Evaluating the changes of VOCs profile of X–ray irradiated Hass avocado by means of HS-SPME/GC-MS","Autore":"Francesca Catano","Affiliazione":"Istituto Zooprofilattico Sperimentale di Puglia e Basilicata"},{"Codice":"P 03","Sessione poster":"1","Titolo":"PROTAC-Based Multitarget Strategies in Neurodegenerative Diseases","Autore":"Pasquale Degennaro","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 04","Sessione poster":"1","Titolo":"Chemical Fingerprinting and Durability Assessment of Street Art: A Multi-Analytical Study of Spray Varnishes under UV Aging","Autore":"Elena Rigante","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 05","Sessione poster":"1","Titolo":"Supercritical CO2 fluid extraction from Organic Municipal Solid Waste: modelling of extraction kinetics","Autore":"Enrico Scelsi","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 06","Sessione poster":"1","Titolo":"Design of Experiments as a Tool to Probe Amplification Dynamics in Single-Molecule Wide-Field Biosensors","Autore":"Michele Catacchio","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 07","Sessione poster":"1","Titolo":"Synthesis and Application of Ammonium N-ethyloxamate Monohydrate for Marble Consolidation","Autore":"Simone Murgia","Affiliazione":"Università degli Studi di Cagliari"},{"Codice":"P 08","Sessione poster":"1","Titolo":"LC-MS Profiling of the Molecular Response to Neuroinflammation: the Oxysterol Perspective","Autore":"Martina Solarino","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 09","Sessione poster":"1","Titolo":"Spectroscopic and Structural Investigation of Bovine Hemoglobin Interactions with Surfactants of Different Ionic Nature","Autore":"Gaia Amoroso","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 10","Sessione poster":"1","Titolo":"PXRD crystal structure determination of new quinoline epoxides using the EXPO package","Autore":"Mauro De Feudis","Affiliazione":"Università degli Studi di Bari Aldo Moro & CNR-IC (Istituto di Cristallografia)"},{"Codice":"P 11","Sessione poster":"1","Titolo":"Improving Bioelectronic Point-of-Care Detection of Subgenomic RNA Using Machine Learning","Autore":"Mariapia Caputo","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 12","Sessione poster":"1","Titolo":"Bio-electronic sensor for early HPV detection","Autore":"Ilaria Iacobellis","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 13","Sessione poster":"1","Titolo":"From Double Emulsion to Multinucleate Microparticles: Microencapsulation by Prilling/vibration technique of Natural Polymers for Agronomic Applications","Autore":"Annachiara Ruta","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 14","Sessione poster":"1","Titolo":"Synthesis and characterization of mixed oxide and carbonates for the development of co2 hydrogenation catalysts","Autore":"Maria Francesca Sforza","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 15","Sessione poster":"1","Titolo":"Polydopamine-based Molecular-Imprinted Polymers for Ultrasensitive Perylene Detection","Autore":"Angelo Tricase","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 16","Sessione poster":"1","Titolo":"Bioelectronic sensors for early detection of cervical cancer precursors","Autore":"Lucia Sarcina","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 17","Sessione poster":"1","Titolo":"Development and validation of analytical methods for mycotoxins in agri-food products","Autore":"Andrea Cinnirella","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 18","Sessione poster":"1","Titolo":"Valorization of cactus mucilage for edible coatings: improved extraction for film development","Autore":"Federica Iaconeta","Affiliazione":"Università del Salento"},{"Codice":"P 19","Sessione poster":"1","Titolo":"Mussel-bioinspired Edible Ca2+-crosslinked Alginate Hydrogel Electrodes for Glucose Gastrointestinal Monitoring","Autore":"Verdiana Marchianò","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 20","Sessione poster":"1","Titolo":"Optimization of quinone-based organic electrodes in lithium-ion batteries: role of conductive carbon and grinding","Autore":"Simone Bruno & Mattia Michele Orlando","Affiliazione":"CNR-Nanotec"},{"Codice":"P 21","Sessione poster":"1","Titolo":"Natural substances for the conservation of cultural heritage: light and shadow","Autore":"Francesca Bufo","Affiliazione":"Politecnico di Bari"},{"Codice":"P 22","Sessione poster":"1","Titolo":"Advancing Food Safety: A Rapid and High Throughput DART-MS/MS method for Biogenic Amines detection in foods","Autore":"Anna Luparelli","Affiliazione":"CNR-IBIOM (Istituto di Biomembrane, Bioenergetica e Biotecnologie Molecolari)"},{"Codice":"P 23","Sessione poster":"1","Titolo":"Integration of deep learning and qNMR for accurate analysis of carbohydrate mixtures","Autore":"Rostom Krid","Affiliazione":"Politecnico di Bari"},{"Codice":"P 24","Sessione poster":"1","Titolo":"Grape Pomace as a Sustainable Source of Phenolics: Development of an Efficient Purification Method for Hydroxycinnamic-Acid-Rich Extracts","Autore":"Eddahaoui Khadija","Affiliazione":"INSTM, DiSTeBA, CNR"},{"Codice":"P 25","Sessione poster":"1","Titolo":"Infrared Irradiation-Assisted Green Approach for Pd-Catalyzed Buchwald-Hartwig Amination","Autore":"Riccardo Ciciriello","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 26","Sessione poster":"1","Titolo":"In-depth characterization of the proteomic profile of Lemna minor and in silico allergenicity assessments using mass spectrometry and advanced bioinformatics tools","Autore":"Antonella Lamonaca","Affiliazione":"CNR-ISPA (Istituto di Scienze delle Produzioni Alimentari"},{"Codice":"P 27","Sessione poster":"1","Titolo":"Preparation and Evaluation of Ni–Biochar Catalysts with Different Nickel Contents and Treatments for Lignin Hydrogenation","Autore":"Peyman Hamidizadeh","Affiliazione":"Politecnico di Bari"},{"Codice":"P 28","Sessione poster":"1","Titolo":"Drought stress resilience of Apulian chickpea local varieties","Autore":"Angela R. Piergiovanni","Affiliazione":"CNR-IBBR (Istituto di Bioscienze e Biorisorse)"},{"Codice":"P 29","Sessione poster":"1","Titolo":"High-resolution mass spectrometry workflow for the structural elucidation of pendimethalin biotransformation products in zebrafish","Autore":"Federico Fanti","Affiliazione":"Università degli Studi di Teramo"},{"Codice":"P 30","Sessione poster":"1","Titolo":"Shifting Lithium Amide-Reactivity to the Radical Domain: Application to the Synthesis of 1,5-Dioxaspiro[2.3]hexanes","Autore":"Annarita Vicenti","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 31","Sessione poster":"2","Titolo":"Analysis of Per- and Poly-Fluoro Alkyl Substances (PFAS) in Environmental Matrices (Water) via Liquid Cromatography coupled to Tandem Mass Spectrometry (LC-MS/MS). First data: Ground and Surface Water Monitoring in Campania region","Autore":"Roberto Simonelli","Affiliazione":"Università degli Studi di Napoli Federico II"},{"Codice":"P 32","Sessione poster":"2","Titolo":"Humidity-assisted halide homogenization during the crystallization of wide-bandgap mixed-halide perovskite films","Autore":"Alberto Corchia","Affiliazione":"CNR-Nanotec"},{"Codice":"P 33","Sessione poster":"2","Titolo":"Highly Efficient and Selective Oxidation of 5-hydroxymethylfurfural to 2,5-diformylfuran over Vanadium Supported on Montmorillonite K10","Autore":"Prabu Kandasamy","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 34","Sessione poster":"2","Titolo":"From Waste to Resources: A multi-step Biorefinery Approach for Orange Peel Valorization","Autore":"Silvia Sorbo","Affiliazione":"Università degli Studi di Messina"},{"Codice":"P 35","Sessione poster":"2","Titolo":"Choline Chloride Versus Choline Acetate: Anion Influence on Plasticizing Action in Starch/Chitosan Blends","Autore":"Benedetta Malvagna","Affiliazione":"Università degli Studi di Roma Tre"},{"Codice":"P 36","Sessione poster":"2","Titolo":"Development of sensors for heavy metals determination in environmental matrices","Autore":"Gian Marco Michetti","Affiliazione":"Università degli Studi di Urbino Carlo Bo"},{"Codice":"P 37","Sessione poster":"2","Titolo":"HLD Model for the Structural Characterization of Sulfosuccinate-Based Bicontinuous Microemulsions","Autore":"Stefano Speranza","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 38","Sessione poster":"2","Titolo":"New photocatalysts and bio-based adsorbents for water treatment","Autore":"Pierluigi Lasala","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 39","Sessione poster":"2","Titolo":"Sustainable large-scale synthesis and characterization of metal oxides for electrocatalytic hydrogen production","Autore":"Thomas Ignazzi","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 40","Sessione poster":"2","Titolo":"Generation and Use of Bicyclo[1.1.0]butyllithium under Continuous Flow Conditions","Autore":"Elena Graziano","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 41","Sessione poster":"2","Titolo":"Carbon dots for enhancing photoelectrochemical production of hydrogen by composite (bio)nanosystems","Autore":"Rosa Pia Di Fonzo","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 42","Sessione poster":"2","Titolo":"Molecular basis for the agonist-to-antagonist switching in Kv7 ion channels","Autore":"Marco D'alì","Affiliazione":"Università degli Studi di Messina"},{"Codice":"P 43","Sessione poster":"2","Titolo":"Next-generation Mesoporous Silica/Hydroxyapatite-Nanocomposites: A Promising Platform for Bone Cancer Treatment","Autore":"Chiara Perrone","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 44","Sessione poster":"2","Titolo":"Nanoparticles effect on charge transfer resistance in biohybrid electrochemical systems","Autore":"Rosa Maria Matteucci","Affiliazione":"Politecnico di Bari"},{"Codice":"P 45","Sessione poster":"2","Titolo":"Comparing Redox Molecules for Enhanced Organic Cathode Performance in Lithium-Ion Batteries","Autore":"Martina Scaramuzzo","Affiliazione":"CNR-Nanotec & Università del Salento"},{"Codice":"P 46","Sessione poster":"2","Titolo":"Azabicyclo[1.1.0]butyl-substituted sulfonimidoyl fluoride: Electrophilic hub bridging late-stage azetidine incorporation with SuFEx chemistry","Autore":"Defne Serbetci","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 47","Sessione poster":"2","Titolo":"Development of advanced analytical techniques an reference materials to investigate the potential release of chemical compounds from innovative bioactive food packaging","Autore":"Deborah Freschini","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 48","Sessione poster":"2","Titolo":"Banana peel extract as a green source for the preparation of Ag- and Ce-based nanomaterials. Characterization and food packaging application","Autore":"Salvatore Mastromarino","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 49","Sessione poster":"2","Titolo":"Development of processes to support the synthesis of small organic molecules. Strained carbocyclic compounds, a case study","Autore":"Samuele Usai","Affiliazione":"Università degli Studi di Cagliari"},{"Codice":"P 50","Sessione poster":"2","Titolo":"Microencapsulation strategy for targeted treatment of lactase intolerance: combining β-Galactosidase and Lactobacillus acidophilus","Autore":"Marianna Ivone","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 51","Sessione poster":"2","Titolo":"Physicochemical and Thermal Characterization of Butyric Acid–Based DESs for Use in Self-Emulsifying Drug Delivery","Autore":"Erica Andriani","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 52","Sessione poster":"2","Titolo":"Toxicological Characterization of PM2.5 in Lecce Using Acellular and Cellular Assays","Autore":"Laura Martina","Affiliazione":"CNR-ISAC (Istituto di Scienze dell’Atmosfera e del Clima)"},{"Codice":"P 53","Sessione poster":"2","Titolo":"Comparative Analysis of PM2.5 Oxidative Potential in Two Mediterranean Cities: Lecce and Athens","Autore":"Serena Potì","Affiliazione":"Università del Salento & CNR-ISAC (Istituto di Scienze dell’Atmosfera e del Clima)"},{"Codice":"P 54","Sessione poster":"2","Titolo":"Monitoring the health status of environmental matrices through pesticide determination","Autore":"Annamaria Ragonese","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 55","Sessione poster":"2","Titolo":"Mechanochemical Synthesis of Piperazin-2-ones in a One-Pot De- constructive Approach of Trihalohydrines 1,2-Diamines","Autore":"Giulia De Santis","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 56","Sessione poster":"2","Titolo":"Utilization of Mechanical Coatings Technology on Extruder Surfaces for Direct Powder Extrusion in 3D Printing","Autore":"Xhoi Xibri","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 57","Sessione poster":"2","Titolo":"From Analytical Chemistry to Environmental Modeling","Autore":"Carmine Massarelli","Affiliazione":"CNR-ITC (Istituto per le Tecnologie della Costruzione)"},{"Codice":"P 58","Sessione poster":"2","Titolo":"Electrochemical materials science in reversible fuel cell: CFA Lab activities","Autore":"Laura Casciaro","Affiliazione":"Università del Salento"},{"Codice":"P 59","Sessione poster":"2","Titolo":"Metabolomic changes in xylem tissue of susceptible and resistant olive cultivars to Xylella fastidiosa infection","Autore":"Annamaria Greco","Affiliazione":"Politecnico di Bari"},{"Codice":"P 60","Sessione poster":"2","Titolo":"Chemical-physical investigation of the interaction between detergents and phospholipid membranes","Autore":"Pamela Giannone","Affiliazione":"Università degli Studi di Bari Aldo Moro"},{"Codice":"P 61","Sessione poster":"2","Titolo":"Microwave-mediated synthesis of superhydrophobic graphene-PDMS sponges for efficient oil-water separation","Autore":"Maryam Shahzad Shirazi","Affiliazione":"Università del Salento"},{"Codice":"P 62","Sessione poster":"1","Titolo":"Bioelectrocatalysis screening for nicotinamide adenine dinucleotide (NAD + /NADH) and its mimetics","Autore":"Nunzio Giorgio Gempis Carducci","Affiliazione":"Michigan State University"}],"Live":[{"Sala":"Tutte","Ritardo (minuti)":"0","Avviso":""},{"Sala":"Sala videoconferenze","Ritardo (minuti)":"0","Avviso":""},{"Sala":"Sala lettura","Ritardo (minuti)":"0","Avviso":""}],"Info":[{"Voce":"Sede","Testo":"Indirizzo della sede e aule (da inserire).","Link":"","Testo del pulsante":"Apri la mappa"},{"Voce":"Registrazione","Testo":"Dalle 8:15 del primo giorno, all'ingresso della sede.","Link":"","Testo del pulsante":""},{"Voce":"Presentazioni","Testo":"Oral: 12 minuti più 3 di domande. Flash: 5 minuti.\nSi può parlare in italiano o in inglese, ma le slide devono essere in inglese.\nPoster: dimensioni consigliate 120 x 85 cm (altezza x larghezza).","Link":"","Testo del pulsante":""},{"Voce":"Wi-Fi","Testo":"Rete e password (da inserire).","Link":"","Testo del pulsante":""},{"Voce":"Cena sociale","Testo":"Luogo e orario (da inserire).","Link":"","Testo del pulsante":""},{"Voce":"Contatti","Testo":"chimicasottolalbero@gmail.com","Link":"mailto:chimicasottolalbero@gmail.com","Testo del pulsante":"Scrivici"},{"Voce":"Sito del convegno","Testo":"","Link":"https://www.chimicasottolalbero.it","Testo del pulsante":"Vai al sito"}]};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MIN = 60000;
+
+/* memoria sul telefono */
+const mem = {
+  get(k, d){ try { const v = localStorage.getItem("csa-" + k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem("csa-" + k, JSON.stringify(v)); } catch(e){} }
+};
+
+/* orologio, con eventuale simulazione */
+const param = new URLSearchParams(location.search).get("ora");
+const scarto = param ? romaDaIso(param) - Date.now() : 0;
+const adesso = () => Date.now() + scarto;
+
+/* date e orari sempre in ora italiana */
+function offsetRoma(t){
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Rome",hourCycle:"h23",
+    year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"})
+    .formatToParts(new Date(t)).map(x => [x.type, x.value]));
+  return Date.UTC(+p.year, p.month-1, +p.day, +p.hour, +p.minute, +p.second) - t;
+}
+function roma(g, o){
+  const [Y,M,D] = g.split("-").map(Number), [h,m] = o.split(":").map(Number);
+  const t = Date.UTC(Y, M-1, D, h, m);
+  return t - offsetRoma(t);
+}
+function romaDaIso(s){ const [g,o="00:00"] = s.split("T"); return roma(g, o.slice(0,5)); }
+function giornoRoma(t){
+  return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Rome",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(t));
+}
+function hhmm(t){
+  return new Intl.DateTimeFormat("it-IT",{timeZone:"Europe/Rome",hour:"2-digit",minute:"2-digit"}).format(new Date(t));
+}
+function etichettaGiorno(g, lunga){
+  const f = new Intl.DateTimeFormat("it-IT", lunga ? {timeZone:"Europe/Rome",weekday:"long",day:"numeric",month:"long"}
+                                                  : {timeZone:"Europe/Rome",weekday:"short",day:"numeric",month:"short"});
+  const s = f.format(new Date(roma(g, "12:00"))).replace(".", "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* valori scritti nel foglio */
+function normGiorno(v){
+  v = String(v || "").trim();
+  let m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+  return "";
+}
+function normOra(v){
+  const m = String(v || "").trim().match(/^(\d{1,2})[:.](\d{2})/);
+  return m ? `${m[1].padStart(2,"0")}:${m[2]}` : "";
+}
+
+/* lettura dal foglio Google */
+function csv(testo){
+  const righe = []; let riga = [], campo = "", q = false;
+  for (let i = 0; i < testo.length; i++){
+    const c = testo[i];
+    if (q){ if (c === '"'){ if (testo[i+1] === '"'){ campo += '"'; i++; } else q = false; } else campo += c; }
+    else if (c === '"') q = true;
+    else if (c === ","){ riga.push(campo); campo = ""; }
+    else if (c === "\n"){ riga.push(campo); righe.push(riga); riga = []; campo = ""; }
+    else if (c !== "\r") campo += c;
+  }
+  if (campo || riga.length){ riga.push(campo); righe.push(riga); }
+  const [h, ...r] = righe;
+  return r.map(x => Object.fromEntries(h.map((k,i) => [k.trim(), (x[i] ?? "").trim()])));
+}
+async function scheda(nome, facoltativa){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(nome)}&t=${Date.now()}`;
+  try {
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) throw new Error(r.status);
+    return csv(await r.text());
+  } catch(e){ if (facoltativa) return []; throw e; }
+}
+
+/* stato */
+let dati = null, ultimo = mem.get("ultimo", null), errore = false;
+let vista = "prog";
+let scelta = null;
+let filtro = mem.get("sala", "");
+let cercato = "";
+let preferiti = new Set(mem.get("preferiti", []));
+let scorriAdesso = true;
+
+let grezzi = null;
+async function carica(soloLive){
+  try {
+    if (!SHEET_ID) grezzi = DEMO;
+    else if (soloLive && grezzi) grezzi = {...grezzi, Live: await scheda("Live", true)};
+    else grezzi = {Programma: await scheda("Programma"), Poster: await scheda("Poster", true),
+                   Live: await scheda("Live", true), Info: await scheda("Info", true)};
+    dati = prepara(grezzi); ultimo = Date.now(); errore = false;
+    if (SHEET_ID){ mem.set("copia", grezzi); mem.set("ultimo", ultimo); }
+  } catch(e){
+    errore = true;
+    const copia = mem.get("copia", null);     // senza rete: ultimo programma scaricato
+    if (!dati && copia){ grezzi = copia; dati = prepara(copia); }
+  }
+  disegna();
+}
+
+function prepara(g){
+  const items = (g.Programma || []).map(r => ({
+    g: normGiorno(r["Giorno"]), ora: normOra(r["Ora"]), fine: normOra(r["Fine"]),
+    sala: (r["Sala"] || "Tutte").trim() || "Tutte", sessione: r["Sessione"] || "", chair: r["Chair"] || "",
+    codice: (r["Codice"] || "").trim(), titolo: r["Titolo"] || "", relatore: r["Relatore"] || "",
+    aff: r["Affiliazione"] || "", note: r["Note"] || ""
+  })).filter(x => x.g && x.ora && x.titolo);
+  items.forEach(x => {
+    x.tipo = (x.codice.match(/^[A-Za-z]+/) || [""])[0].toUpperCase();
+    x.comune = x.sala.toLowerCase() === "tutte";
+    x.base = roma(x.g, x.ora);
+  });
+  const sale = [...new Set(items.filter(x => !x.comune).map(x => x.sala))];
+  const ritardi = {}; let avviso = "";
+  (g.Live || []).forEach(r => {
+    const s = (r["Sala"] || "").trim(), v = parseInt(r["Ritardo (minuti)"], 10);
+    if (s) ritardi[s.toLowerCase()] = isNaN(v) ? 0 : v;
+    if ((r["Avviso"] || "").trim()) avviso = r["Avviso"].trim();
+  });
+  const poster = (g.Poster || []).map(r => ({codice:(r["Codice"]||"").trim(), sess:String(r["Sessione poster"]||"").trim(),
+    titolo:r["Titolo"]||"", autore:r["Autore"]||"", aff:r["Affiliazione"]||""})).filter(p => p.codice || p.titolo);
+  const info = (g.Info || []).map(r => ({voce:r["Voce"]||"", testo:r["Testo"]||"", link:r["Link"]||"", etichetta:r["Testo del pulsante"]||""}))
+    .filter(x => x.voce || x.testo);
+  const giorni = [...new Set(items.map(x => x.g))].sort();
+  return {items, sale, ritardi, avviso, poster, info, giorni};
+}
+
+/* orari effettivi, con i ritardi applicati solo al giorno in corso */
+function calcola(){
+  const oggi = giornoRoma(adesso());
+  const {items, ritardi} = dati;
+  items.forEach(x => {
+    x.rit = x.g === oggi ? (ritardi[x.sala.toLowerCase()] || 0) : 0;
+    x.inizio = x.base + x.rit * MIN;
+  });
+  items.forEach(x => {
+    const dopo = items.filter(y => y.g === x.g && y.base > x.base && (x.comune || y.comune || y.sala === x.sala)).map(y => y.inizio);
+    const prossimo = dopo.length ? Math.min(...dopo) : null;
+    if (x.fine) x.termine = roma(x.g, x.fine) + x.rit * MIN;
+    else if (DURATA[x.tipo]) x.termine = Math.min(x.inizio + DURATA[x.tipo] * MIN, prossimo ?? Infinity);
+    else x.termine = prossimo ? Math.min(prossimo, x.inizio + 120 * MIN) : x.inizio + 120 * MIN;
+  });
+  return oggi;
+}
+
+/* pezzi grafici */
+const ETICHETTA = {PL:"Plenaria", GS:"Guest speaker", SP:"Sponsor"};
+const STELLA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>`;
+const tag = x => x.codice ? `<span class="tag t-${esc(x.tipo)}">${esc(x.codice)}</span>` : "";
+const stella = cod => cod ? `<button class="stella${preferiti.has(cod) ? " on" : ""}" data-star="${esc(cod)}"
+  aria-label="${preferiti.has(cod) ? "Togli da" : "Aggiungi a"} Il mio programma" aria-pressed="${preferiti.has(cod)}">${STELLA}</button>` : "";
+const stato = (x, t) => t >= x.termine ? "passata" : (t >= x.inizio ? "incorso" : "");
+const orario = x => `<div class="ora">${hhmm(x.inizio)}${x.rit ? `<s>${x.ora}</s>` : ""}</div>`;
+const nomeSala = s => { const n = s.replace(/^sala\s+/i, ""); return n.charAt(0).toUpperCase() + n.slice(1); };
+const idxSala = s => Math.max(0, dati.sale.indexOf(s));
+
+function voce(x, t, extra = ""){
+  const st = stato(x, t);
+  return `<div class="voce ${st}" ${st === "incorso" ? 'id="adesso"' : ""}>${orario(x)}
+    <div class="corpo">${extra}<div class="tit">${tag(x)}${esc(x.titolo)}${st === "incorso" ? '<span class="badge">In corso</span>' : ""}</div>
+      ${x.relatore ? `<div class="rel"><b>${esc(x.relatore)}</b>${x.aff ? ` <span class="aff">· ${esc(x.aff)}</span>` : ""}</div>` : ""}
+      ${x.note ? `<div class="nota">${esc(x.note)}</div>` : ""}</div>${stella(x.codice)}</div>`;
+}
+function vocePoster(p, extra = ""){
+  return `<div class="voce"><div class="corpo">${extra}
+      <div class="tit"><span class="tag t-P">${esc(p.codice)}</span>${esc(p.titolo)}</div>
+      <div class="rel"><b>${esc(p.autore)}</b>${p.aff ? ` <span class="aff">· ${esc(p.aff)}</span>` : ""}</div></div>${stella(p.codice)}</div>`;
+}
+
+/* pannello "ora in corso" */
+function pannelloLive(oggi, t){
+  const el = $("live");
+  const delGiorno = dati.items.filter(x => x.g === oggi);
+  if (vista !== "prog" && vista !== "mio" || !delGiorno.length){ el.hidden = true; return; }
+  const primo = Math.min(...delGiorno.map(x => x.inizio)), fine = Math.max(...delGiorno.map(x => x.termine));
+  if (t < primo - 30 * MIN || t > fine){ el.hidden = true; return; }
+
+  const carta = (titolo, cur, next, rit) => `<div class="carta${cur ? "" : " vuota"}">
+      <div class="sala"><span>${esc(titolo)}</span>${rit ? `<span class="rit">+${rit} min</span>` : ""}</div>
+      ${cur ? `<div class="ora-tit">${tag(cur)}${esc(cur.titolo)}</div>${cur.relatore ? `<div class="chi">${esc(cur.relatore)}</div>` : ""}`
+            : `<div class="ora-tit">Nessun intervento in questo momento</div>`}
+      ${next ? `<div class="poi">A seguire, <b>${hhmm(next.inizio)}</b>: ${esc(next.relatore || next.titolo)}</div>` : ""}
+    </div>`;
+  const comune = delGiorno.find(x => x.comune && x.inizio <= t && t < x.termine);
+  const qualcosa = delGiorno.some(x => x.inizio <= t && t < x.termine);
+  const prossimoTutti = delGiorno.filter(x => x.inizio > t).sort((a,b) => a.inizio - b.inizio)[0];
+  let carte;
+  if (comune || !dati.sale.length || (!qualcosa && prossimoTutti?.comune)){
+    const next = delGiorno.filter(x => x.inizio > t).sort((a,b) => a.inizio - b.inizio)[0];
+    carte = carta(comune && ETICHETTA[comune.tipo] || "Tutte le sale", comune, next, comune?.rit);
+  } else {
+    carte = dati.sale.map(s => {
+      const qui = delGiorno.filter(x => x.sala === s || x.comune).sort((a,b) => a.inizio - b.inizio);
+      return carta(s, qui.find(x => x.inizio <= t && t < x.termine), qui.find(x => x.inizio > t), qui.find(x => x.sala === s)?.rit);
+    }).join("");
+  }
+  const mio = delGiorno.filter(x => preferiti.has(x.codice) && x.inizio > t).sort((a,b) => a.inizio - b.inizio)[0];
+  const tuo = mio ? `<div class="tuo">Il tuo prossimo: <b>${hhmm(mio.inizio)}</b>, ${esc(mio.relatore || mio.titolo)} · ${esc(mio.comune ? "tutte le sale" : mio.sala)}</div>` : "";
+  el.hidden = false;
+  el.innerHTML = `<h2><span class="punto"></span>Ora in corso<small class="prog">secondo il programma</small></h2><div class="carte">${carte}</div>${tuo}`;
+}
+
+/* programma di un giorno, con le sessioni parallele raggruppate */
+function elencoGiorno(g, t){
+  const items = dati.items.filter(x => x.g === g).sort((a,b) => a.base - b.base || idxSala(a.sala) - idxSala(b.sala));
+  const blocchi = [], perSessione = {};
+  items.forEach(x => {
+    if (x.comune){ blocchi.push({comune:x}); return; }
+    const k = x.sala + "|" + x.sessione;
+    if (!perSessione[k]){ perSessione[k] = {sala:x.sala, sessione:x.sessione, chair:x.chair, voci:[]}; blocchi.push(perSessione[k]); }
+    perSessione[k].voci.push(x);
+  });
+  const html = blocchi.filter(b => b.comune || !filtro || b.sala === filtro).map(b => {
+    if (b.comune){
+      const x = b.comune, speciale = ["PL","GS","SP"].includes(x.tipo);
+      return `<div class="blocco comune ${speciale ? "speciale" : "pausa"}">${voce(x, t, speciale ? `<div class="quando">${esc(ETICHETTA[x.tipo])} · tutte le sale</div>` : "")}</div>`;
+    }
+    return `<div class="blocco"><div class="intest s${idxSala(b.sala)}">
+        <div class="nome">${esc(b.sessione || "Sessione")}</div>
+        <div class="dett"><b>${esc(b.sala)}</b>${b.chair ? ` · Chair: ${esc(b.chair)}` : ""}</div></div>
+      <div class="gruppo">${b.voci.map(x => voce(x, t)).join("")}</div></div>`;
+  }).join("");
+  return html || `<div class="vuoto">Nessun intervento per questa sala in questo giorno.</div>`;
+}
+
+function vistaPoster(){
+  const sess = [...new Set(dati.poster.map(p => p.sess))].sort();
+  return `<h2 class="titolo-vista">Poster</h2>` + (sess.map(s => `<div class="sessp"><h3>Sessione poster ${esc(s)}</h3>
+    <div class="gruppo">${dati.poster.filter(p => p.sess === s).map(p => vocePoster(p)).join("")}</div></div>`).join("")
+    || `<div class="vuoto">Nessun poster.</div>`);
+}
+
+function vistaMio(t){
+  const miei = dati.items.filter(x => preferiti.has(x.codice)).sort((a,b) => a.inizio - b.inizio);
+  const mieiP = dati.poster.filter(p => preferiti.has(p.codice));
+  let html = `<h2 class="titolo-vista">Il mio programma</h2>`;
+  if (!miei.length && !mieiP.length)
+    return html + `<p class="sotto-vista">Tocca la stellina accanto agli interventi e ai poster che vuoi seguire: li ritrovi qui, in ordine di orario, con la sala.</p>`;
+  html += `<p class="sotto-vista">Le scelte restano salvate su questo telefono.</p>`;
+  dati.giorni.forEach(g => {
+    const qui = miei.filter(x => x.g === g); if (!qui.length) return;
+    html += `<div class="giorno-mio">${esc(etichettaGiorno(g, true))}</div><div class="gruppo">` + qui.map((x, i) => {
+      const prima = qui[i-1];
+      const sovrapposto = prima && prima.termine > x.inizio && prima.sala !== x.sala && !prima.comune && !x.comune;
+      return voce(x, t, `<div class="quando">${esc(x.comune ? "Tutte le sale" : x.sala)}</div>`)
+        .replace('<div class="corpo">', `<div class="corpo">${sovrapposto ? '<div class="conflitto">In contemporanea con il precedente</div>' : ""}`);
+    }).join("") + `</div>`;
+  });
+  if (mieiP.length) html += `<div class="sessp"><h3>Poster</h3><div class="gruppo">${mieiP.map(p => vocePoster(p, `<div class="quando">Sessione poster ${esc(p.sess)}</div>`)).join("")}</div></div>`;
+  return html;
+}
+
+function vistaInfo(){
+  return `<h2 class="titolo-vista">Informazioni</h2>` + (dati.info.map(x => `<div class="info-voce">
+      <h3>${esc(x.voce)}</h3>${x.testo ? `<p>${esc(x.testo)}</p>` : ""}
+      ${x.link ? `<a class="link" href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.etichetta || "Apri")}</a>` : ""}</div>`).join("")
+    || `<div class="vuoto">Nessuna informazione.</div>`);
+}
+
+function risultati(q, t){
+  const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const parole = norm(q).split(/\s+/).filter(Boolean);
+  const ok = s => parole.every(w => norm(s).includes(w));
+  const vi = dati.items.filter(x => ok([x.codice, x.titolo, x.relatore, x.aff, x.note].join(" "))).sort((a,b) => a.base - b.base);
+  const vp = dati.poster.filter(p => ok([p.codice, p.titolo, p.autore, p.aff].join(" ")));
+  const n = vi.length + vp.length;
+  return `<div class="risultati-tit">${n ? `${n} risultat${n === 1 ? "o" : "i"}` : "Nessun risultato"} per “${esc(q)}”</div>
+    ${vi.length ? `<div class="gruppo">${vi.map(x => voce(x, t, `<div class="quando">${esc(etichettaGiorno(x.g))} · ${esc(x.comune ? "tutte le sale" : x.sala)}</div>`)).join("")}</div>` : ""}
+    ${vp.length ? `<div class="sessp"><h3>Poster</h3><div class="gruppo">${vp.map(p => vocePoster(p, `<div class="quando">Sessione poster ${esc(p.sess)}</div>`)).join("")}</div></div>` : ""}`;
+}
+
+/* invito a installare l'app */
+let promptInstalla = null;
+const installata = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptInstalla = e; bannerInstalla(); });
+function bannerInstalla(){
+  const el = $("installa");
+  if (installata() || mem.get("no-installa", false) || !(promptInstalla || ios)){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="installa"><p>${promptInstalla ? "Installa l'app del convegno sul telefono."
+      : "Per installare l'app: tocca <b>Condividi</b> e poi <b>Aggiungi alla schermata Home</b>."}</p>
+    ${promptInstalla ? '<button class="si" id="inst-si">Installa</button>' : ""}<button class="no" id="inst-no" aria-label="Chiudi">×</button></div>`;
+  if ($("inst-si")) $("inst-si").onclick = async () => { promptInstalla.prompt(); await promptInstalla.userChoice; promptInstalla = null; bannerInstalla(); };
+  $("inst-no").onclick = () => { mem.set("no-installa", true); bannerInstalla(); };
+}
+
+/* disegno */
+function disegna(){
+  if (!dati){
+    $("lista").innerHTML = `<div class="vuoto">${errore ? "Non riesco a leggere il programma. Controlla la connessione, riprovo tra poco." : "Caricamento del programma…"}</div>`;
+    return;
+  }
+  const oggi = calcola(), t = adesso();
+  if (!scelta || !dati.giorni.includes(scelta))
+    scelta = dati.giorni.includes(oggi) ? oggi : (dati.giorni.includes(mem.get("giorno")) ? mem.get("giorno") : dati.giorni[0]);
+
+  $("stato").textContent = (errore ? (ultimo ? `Senza connessione: dati delle ${hhmm(ultimo)}` : "Senza connessione")
+    : SHEET_ID ? `Aggiornato alle ${hhmm(ultimo)}` : "Dati di prova: edizione 2025")
+    + (scarto ? ` · simulazione del ${etichettaGiorno(oggi)} alle ${hhmm(t)}` : "");
+  if (dati.giorni.length){
+    const gg = dati.giorni.map(g => +g.slice(8)), mese = etichettaGiorno(dati.giorni[0], true).split(" ").pop();
+    $("date").textContent = `Bari, ${gg.length > 1 ? gg.slice(0,-1).join(", ") + " e " + gg.at(-1) : gg[0]} ${mese} ${dati.giorni[0].slice(0,4)}`;
+  }
+  $("avviso").innerHTML = dati.avviso ? `<div class="avviso">${esc(dati.avviso)}</div>` : "";
+  pannelloLive(oggi, t);
+
+  const conta = [...preferiti].length;
+  $("conta").hidden = !conta; $("conta").textContent = conta;
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === vista));
+
+  $("barra").hidden = vista !== "prog";
+  $("pdf").hidden = vista !== "prog" || !PDF_PROGRAMMA || !!cercato;
+  if (PDF_PROGRAMMA) $("pdf").href = PDF_PROGRAMMA;
+  if (vista === "prog"){
+    $("schede").innerHTML = dati.giorni.map(g => `<button data-g="${g}" class="${scelta === g ? "on" : ""}">${esc(etichettaGiorno(g))}</button>`).join("");
+    $("filtri").hidden = !!cercato || dati.sale.length < 2;
+    $("filtri").innerHTML = [["", "Tutte le sale"], ...dati.sale.map(s => [s, nomeSala(s)])]
+      .map(([v, n]) => `<button data-s="${esc(v)}" class="${filtro === v ? "on" : ""}">${esc(n)}</button>`).join("");
+  }
+  $("lista").innerHTML =
+      vista === "mio" ? vistaMio(t)
+    : vista === "poster" ? vistaPoster()
+    : vista === "info" ? vistaInfo()
+    : cercato.length >= 2 ? risultati(cercato, t) : elencoGiorno(scelta, t);
+
+  if (scorriAdesso && vista === "prog" && $("adesso")) $("adesso").scrollIntoView({block:"center"});
+  scorriAdesso = false;
+}
+
+/* comandi */
+document.querySelector(".nav").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  vista = b.dataset.v; disegna(); window.scrollTo({top:0}); };
+$("schede").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  scelta = b.dataset.g; mem.set("giorno", scelta); cercato = ""; $("q").value = ""; $("qx").hidden = true; disegna(); };
+$("filtri").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  filtro = b.dataset.s; mem.set("sala", filtro); disegna(); };
+$("q").oninput = e => { cercato = e.target.value.trim(); $("qx").hidden = !cercato; disegna(); };
+$("qx").onclick = () => { $("q").value = ""; cercato = ""; $("qx").hidden = true; disegna(); $("q").focus(); };
+$("lista").addEventListener("click", e => {
+  const b = e.target.closest(".stella"); if (!b) return;
+  const c = b.dataset.star; preferiti.has(c) ? preferiti.delete(c) : preferiti.add(c);
+  mem.set("preferiti", [...preferiti]); disegna();
+});
+$("live").addEventListener("click", () => {});
+
+$("piede").textContent = "Gli orari in corso seguono il programma e gli eventuali ritardi comunicati dagli organizzatori.";
+
+/* funzionamento offline e installazione */
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+bannerInstalla();
+
+carica();
+setInterval(() => carica(true), AGGIORNA_LIVE * 1000);
+setInterval(() => carica(false), AGGIORNA_TUTTO * 60000);
+setInterval(() => dati && disegna(), 30000);
+</script>
+</body>
+</html>
