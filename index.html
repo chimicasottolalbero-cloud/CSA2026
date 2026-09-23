@@ -199,15 +199,16 @@
   .p-sess{margin:14px 0 2px;font-weight:600;color:var(--blu);font-size:13.5px;padding-bottom:3px;border-bottom:2px solid var(--blu)}
   .p-riga{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--linea);background:#fff;
     padding:9px 0;font:inherit;cursor:pointer;color:var(--testo)}
-  .p-riga.aperto{background:var(--azzurro);margin:0 -8px;padding:9px 8px;width:calc(100% + 16px);border-radius:8px 8px 0 0}
+  .p-riga.aperto{background:var(--azzurro);padding:9px 8px;border-radius:8px 8px 0 0;border-bottom-color:transparent}
   .p-ora{flex:none;width:44px;font-weight:600;color:var(--blu)}
   .p-chi{flex:1;min-width:0}
-  .p-chi b{font-weight:600}
+  .p-chi b{font-weight:600;display:inline}
+  .p-chi .tag{margin-right:4px}
   .p-chi small{display:block;font-size:12.5px;color:#66666c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .p-stato{flex:none;font-size:12.5px;color:#66666c;text-align:right}
+  .p-stato{flex:none;max-width:76px;font-size:12px;line-height:1.2;color:#66666c;text-align:right}
   .p-stato b{font-size:16px;color:var(--rosso)}
   .p-riga.fatto .p-chi,.p-riga.fatto .p-ora{opacity:.6}
-  .p-editor{background:var(--azzurro);margin:0 -8px 8px;padding:4px 8px 10px;border-radius:0 0 8px 8px}
+  .p-editor{background:var(--azzurro);margin:0 0 8px;padding:4px 8px 10px;border-radius:0 0 8px 8px}
   .p-crit{margin-top:8px}
   .p-crit-nome{font-size:13px;font-weight:600;color:var(--blu)}
   .p-scala{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-top:4px}
@@ -284,6 +285,12 @@
   .area{margin-top:24px;padding-top:14px;border-top:1px solid var(--linea);text-align:center}
   .area-btn,.torna-app{border:0;background:none;color:#66666c;font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:6px}
   .torna-app{margin-top:14px}
+  body.chair header.top,body.classifica header.top{display:none}
+  body.chair main,body.classifica main{padding-top:0}
+  .area-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
+  .a-back{border:0;background:none;color:var(--rosso);font:inherit;font-size:15px;font-weight:600;padding:4px 0;cursor:pointer}
+  .a-chi{font-size:13px;color:#66666c;text-align:right}
+  .area-tit{margin-top:8px}
   .area-menu{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
   .area-menu button{border:1px solid var(--linea);background:#fff;border-radius:14px;padding:4px 12px;font:inherit;font-size:13px;color:var(--blu);cursor:pointer}
   .area-menu button.on{background:var(--blu);border-color:var(--blu);color:#fff}
@@ -866,10 +873,10 @@ function elencoChair(){
   return [...nomi.values()].sort((a, b) => cognome(a).localeCompare(cognome(b)) || a.localeCompare(b));
 }
 
-function schermataAccesso(titolo = "Modalità chair", sotto = "Accesso riservato a chi modera le sessioni.", dopo = () => { disegnaChair(); caricaDomande(); }){
+function schermataAccesso(titolo = "Area chair", sotto = "Accesso riservato a chi modera le sessioni.", dopo = () => { disegnaChair(); caricaDomande(); }){
   const chair = elencoChair(), salvato = mem.get("chair-nome", "");
   const altro = salvato && !chair.includes(salvato) && salvato !== "Organizzazione";
-  $("lista").innerHTML = `<h2 class="titolo-vista">${esc(titolo)}</h2>
+  $("lista").innerHTML = barraArea("", "App") + `<h2 class="titolo-vista area-tit">${esc(titolo)}</h2>
     <p class="sotto-vista">${esc(sotto)}</p>
     <form class="accesso" id="accesso">
       <label>Chi sei<select name="chi" id="acc-chi" required>
@@ -882,8 +889,7 @@ function schermataAccesso(titolo = "Modalità chair", sotto = "Accesso riservato
       <label>Password<input name="pw" type="password" required autocomplete="current-password"></label>
       <p class="esito" id="acc-esito"></p>
       <button class="acc-ok">Entra</button>
-    </form>
-    <button class="torna-app" data-pagina="">Torna all'app</button>`;
+    </form>`;
   $("accesso").onsubmit = async e => {
     e.preventDefault();
     const f = new FormData(e.target);
@@ -907,12 +913,13 @@ function disegnaChair(){
   if (!sale.includes(chairSala)) chairSala = sale[0];
   const giorno = dati.giorni.includes(oggi) ? oggi : (scelta || dati.giorni[0]);
   if (!dati.giorni.includes(chairGiorno)) chairGiorno = giorno;
-  const testa = menuArea("chair") + `<div class="chair-testa"><h2 class="titolo-vista">Modalità chair</h2>
-      <span>${esc(mem.get("chair-nome", ""))} · <button class="esci" id="esci">Esci</button></span></div>
-    <div class="schede chair-schede"><button data-ctab="domande" class="${chairTab === "domande" ? "on" : ""}">Domande</button>
-      <button data-ctab="punteggi" class="${chairTab === "punteggi" ? "on" : ""}">Punteggi</button></div>
-    <div class="filtri">${sale.map(s => `<button data-csala="${esc(s)}" class="${s === chairSala ? "on" : ""}">${esc(nomeSala(s))}</button>`).join("")}</div>`;
-  $("lista").innerHTML = testa + (chairTab === "punteggi" ? schedaPunteggi(t) : schedaDomande(giorno, t));
+  if (!["domande","punteggi","strumenti"].includes(chairTab)) chairTab = "domande";
+  const testa = barraArea("", "App") + `<h2 class="titolo-vista area-tit">Area chair</h2>
+    <div class="schede chair-schede">${[["domande","Domande"],["punteggi","Punteggi"],["strumenti","Strumenti"]]
+      .map(([k, n]) => `<button data-ctab="${k}" class="${chairTab === k ? "on" : ""}">${n}</button>`).join("")}</div>`;
+  const sceltaSala = sale.length > 1 ? `<div class="filtri">${sale.map(s => `<button data-csala="${esc(s)}" class="${s === chairSala ? "on" : ""}">${esc(nomeSala(s))}</button>`).join("")}</div>` : "";
+  $("lista").innerHTML = testa + (chairTab === "punteggi" ? schedaPunteggi(t)
+    : chairTab === "strumenti" ? schedaStrumenti() : sceltaSala + schedaDomande(giorno, t));
 }
 
 function schedaDomande(giorno, t){
@@ -940,10 +947,12 @@ function schedaPunteggi(t){
   const lista = (chairFiltro === "mie" ? mie : valutabili.filter(x => x.sala === chairSala && x.g === chairGiorno))
     .sort((a,b) => a.base - b.base);
   const fatti = lista.filter(x => punteggi[x.codice]).length;
-  let html = `<div class="filtri p-filtri">
-      ${mie.length ? `<button data-cfiltro="mie" class="${chairFiltro === "mie" ? "on" : ""}">Le mie sessioni</button>` : ""}
-      ${dati.giorni.map(g => `<button data-cfiltro="sala" data-cg="${g}" class="${chairFiltro === "sala" && chairGiorno === g ? "on" : ""}">${esc(nomeSala(chairSala))}, ${esc(etichettaGiorno(g))}</button>`).join("")}
-    </div>
+  const sale = dati.sale.length ? dati.sale : ["Tutte"];
+  const valore = chairFiltro === "mie" ? "mie" : chairSala + "|" + chairGiorno;
+  let html = `<label class="chair-sel">Mostra<select id="pf-sel">
+      ${mie.length ? `<option value="mie" ${valore === "mie" ? "selected" : ""}>Le mie sessioni</option>` : ""}
+      ${dati.giorni.flatMap(g => sale.map(sa => `<option value="${esc(sa + "|" + g)}" ${valore === sa + "|" + g ? "selected" : ""}>${esc(nomeSala(sa))}, ${esc(etichettaGiorno(g))}</option>`)).join("")}
+    </select></label>
     <p class="sotto-vista">Valuta ogni orale e flash da 1 a 10 su ${CRITERI.length} criteri. ${fatti} di ${lista.length} valutati.
       Una volta inviato, un punteggio non si modifica più dall'app.</p>`;
   let sessione = "";
@@ -959,6 +968,15 @@ function schedaPunteggi(t){
     return h + riga + (aperto === x.codice ? editor(x, p) : "");
   }).join("") || `<div class="vuoto">Nessun orale o flash qui.</div>`;
   return html;
+}
+
+function schedaStrumenti(){
+  const voce = (pagina, titolo, testo) => `<button class="voce-altro" data-pagina="${pagina}"><span><b>${titolo}</b><small>${testo}</small></span><span aria-hidden="true">›</span></button>`;
+  return `<div class="menu-altro">
+    ${voce("classifica", "Classifica punteggi", "Carica il file dei punteggi e calcola la classifica, con il confronto tra chair")}
+    ${voce("nuvola", "Schermo nuvola di parole", "Da aprire sul PC collegato al proiettore")}
+    ${voce("risultati", "Schermo voto del pubblico", "Classifica del voto, da proiettare alla premiazione")}
+  </div>`;
 }
 
 function editor(x, p){
@@ -1205,7 +1223,7 @@ function disegnaClassifica(){
   if (!dati) return;
   document.body.classList.add("schermo", "classifica");
   if (!chairEntrato()) return schermataAccesso("Classifica punteggi", "Accesso riservato agli organizzatori.", disegnaClassifica);
-  let html = menuArea("classifica") + `<h2 class="titolo-vista">Classifica punteggi</h2>
+  let html = barraArea("chair", "Area chair") + `<h2 class="titolo-vista area-tit">Classifica punteggi</h2>
     <p class="sotto-vista">Nel foglio dei punteggi: File › Scarica › Valori separati da virgola (.csv), poi carica qui il file.
       I dati restano su questo computer.</p>
     <label class="carica">${valutazioni ? "Carica un altro file" : "Carica il file CSV"}<input type="file" id="csv-in" accept=".csv,text/csv"></label>
@@ -1266,10 +1284,10 @@ function apriPagina(nome){
   if (nome) cerca += (cerca ? "&" : "") + nome;
   location.search = cerca;
 }
-const menuArea = attiva => `<div class="area-menu">
-    ${[["chair","Domande e punteggi"],["classifica","Classifica"],["nuvola","Schermo nuvola"],["risultati","Schermo voto"]]
-      .map(([k, n]) => `<button data-pagina="${k}" class="${attiva === k ? "on" : ""}">${n}</button>`).join("")}
-    <button data-pagina="" class="torna">Torna all'app</button></div>`;
+const barraArea = (indietroA, etichetta) => `<div class="area-top">
+    <button class="a-back" data-pagina="${indietroA}">‹ ${etichetta}</button>
+    ${chairEntrato() ? `<span class="a-chi">${esc(mem.get("chair-nome", ""))} · <button class="esci" id="esci">Esci</button></span>` : ""}
+  </div>`;
 
 /* disegno */
 function disegna(){
@@ -1346,7 +1364,7 @@ document.addEventListener("click", e => {
   const f = e.target.closest(".fascia"); if (f && !f.disabled){ apriPrenota(f.dataset.slot); return; }
   const o = e.target.closest("[data-opp]"); if (o){ filtroOpp = o.dataset.opp; disegna(); return; }
   const cs = e.target.closest("[data-csala]"); if (cs){ chairSala = cs.dataset.csala; chairCodice = ""; mem.set("chair-sala", chairSala); if (chairFiltro === "mie") chairFiltro = "sala"; disegnaChair(); return; }
-  const ct = e.target.closest("[data-ctab]"); if (ct){ chairTab = ct.dataset.ctab; mem.set("chair-tab", chairTab); disegnaChair(); if (chairTab === "domande") caricaDomande(); return; }
+  const ct = e.target.closest("[data-ctab]"); if (ct){ chairTab = ct.dataset.ctab; mem.set("chair-tab", chairTab); aperto = ""; disegnaChair(); window.scrollTo({top:0}); if (chairTab === "domande") caricaDomande(); return; }
   const cf = e.target.closest("[data-cfiltro]"); if (cf){ chairFiltro = cf.dataset.cfiltro; if (cf.dataset.cg) chairGiorno = cf.dataset.cg; aperto = ""; disegnaChair(); return; }
   const ap = e.target.closest("[data-apri]"); if (ap){ aperto = aperto === ap.dataset.apri ? "" : ap.dataset.apri; disegnaChair();
     document.querySelector(".p-riga.aperto")?.scrollIntoView({block:"start", behavior:"smooth"}); return; }
@@ -1368,7 +1386,12 @@ document.addEventListener("input", e => {
   }
 });
 document.addEventListener("click", e => { const b = e.target.closest("[data-cl]"); if (b){ tabClass = b.dataset.cl; disegnaClassifica(); } });
-document.addEventListener("change", e => { if (e.target.id === "csel"){ chairCodice = e.target.value; disegnaChair(); } });
+document.addEventListener("change", e => {
+  if (e.target.id === "csel"){ chairCodice = e.target.value; disegnaChair(); }
+  if (e.target.id === "pf-sel"){ const v = e.target.value; aperto = "";
+    if (v === "mie") chairFiltro = "mie"; else { const [sa, g] = v.split("|"); chairFiltro = "sala"; chairSala = sa; chairGiorno = g; mem.set("chair-sala", sa); }
+    disegnaChair(); window.scrollTo({top:0}); }
+});
 
 $("piede").textContent = "Gli orari in corso seguono il programma e gli eventuali ritardi comunicati dagli organizzatori.";
 
