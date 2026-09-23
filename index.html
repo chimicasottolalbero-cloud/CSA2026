@@ -188,6 +188,7 @@
   body.chair{padding-bottom:20px}
   .accesso{max-width:360px}
   .accesso label{display:block;font-size:13px;font-weight:600;margin-top:10px}
+  .accesso select{display:block;width:100%;margin-top:3px;border:1px solid var(--linea);border-radius:6px;padding:8px;font:inherit;font-size:16px;font-weight:400;background:#fff}
   .accesso input{display:block;width:100%;margin-top:3px;border:1px solid var(--linea);border-radius:6px;padding:8px;font:inherit;font-size:16px;font-weight:400}
   .acc-ok{margin-top:10px;border:0;border-radius:4px;background:var(--rosso);color:#fff;padding:9px 20px;font:inherit;font-weight:600;cursor:pointer}
   .chair-testa{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -856,11 +857,28 @@ function mioChair(x){
   return parole.length > 0 && parole.every(w => norm(x.chair).includes(w));
 }
 
+/* elenco dei chair preso dalla colonna Chair del programma, in ordine di cognome */
+function elencoChair(){
+  const nomi = new Map();
+  dati.items.forEach(x => String(x.chair || "").split(/[,;]| e /).map(n => n.trim()).filter(n => n.length > 2)
+    .forEach(n => { const k = norm(n); if (!nomi.has(k)) nomi.set(k, n); }));
+  const cognome = n => norm(n.split(/\s+/).slice(-1)[0]);
+  return [...nomi.values()].sort((a, b) => cognome(a).localeCompare(cognome(b)) || a.localeCompare(b));
+}
+
 function schermataAccesso(titolo = "Modalità chair", sotto = "Accesso riservato a chi modera le sessioni.", dopo = () => { disegnaChair(); caricaDomande(); }){
+  const chair = elencoChair(), salvato = mem.get("chair-nome", "");
+  const altro = salvato && !chair.includes(salvato) && salvato !== "Organizzazione";
   $("lista").innerHTML = `<h2 class="titolo-vista">${esc(titolo)}</h2>
     <p class="sotto-vista">${esc(sotto)}</p>
     <form class="accesso" id="accesso">
-      <label>Nome e cognome<input name="nome" required autocomplete="name" value="${esc(mem.get("chair-nome", ""))}"></label>
+      <label>Chi sei<select name="chi" id="acc-chi" required>
+        <option value="" disabled ${salvato ? "" : "selected"}>Scegli il tuo nome</option>
+        ${chair.map(n => `<option ${n === salvato ? "selected" : ""}>${esc(n)}</option>`).join("")}
+        <option value="Organizzazione" ${salvato === "Organizzazione" ? "selected" : ""}>Organizzazione</option>
+        <option value="__altro" ${altro ? "selected" : ""}>Il mio nome non c'è</option>
+      </select></label>
+      <label id="acc-altro" ${altro ? "" : "hidden"}>Nome e cognome<input name="nome" autocomplete="name" value="${altro ? esc(salvato) : ""}"></label>
       <label>Password<input name="pw" type="password" required autocomplete="current-password"></label>
       <p class="esito" id="acc-esito"></p>
       <button class="acc-ok">Entra</button>
@@ -872,9 +890,12 @@ function schermataAccesso(titolo = "Modalità chair", sotto = "Accesso riservato
     try {
       if (await impronta(f.get("pw")) !== CHAIR_HASH){ $("acc-esito").textContent = "Password non corretta."; return; }
     } catch(err){ $("acc-esito").textContent = "Accesso non disponibile su questa connessione."; return; }
-    mem.set("chair-accesso", CHAIR_HASH); mem.set("chair-nome", f.get("nome").trim());
+    const chi = f.get("chi") === "__altro" ? String(f.get("nome") || "").trim() : f.get("chi");
+    if (!chi){ $("acc-esito").textContent = "Scegli il tuo nome o scrivilo."; return; }
+    mem.set("chair-accesso", CHAIR_HASH); mem.set("chair-nome", chi);
     dopo();
   };
+  $("acc-chi").onchange = e => { const a = e.target.value === "__altro"; $("acc-altro").hidden = !a; if (a) $("acc-altro").querySelector("input").focus(); };
 }
 
 function disegnaChair(){
