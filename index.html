@@ -117,7 +117,7 @@
   header.top .testi{min-width:0}
   .nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;border-top:1px solid var(--linea);
     padding-bottom:env(safe-area-inset-bottom,0px)}
-  .nav .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+  .nav .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
   .nav button{border:0;background:none;padding:7px 2px 6px;font:inherit;font-size:11.5px;color:#66666c;cursor:pointer;
     display:flex;flex-direction:column;align-items:center;gap:2px}
   .nav button svg{width:22px;height:22px}
@@ -290,6 +290,22 @@
   #chiudi-schermo{position:fixed;top:6px;right:8px;z-index:20;border:0;background:none;font-size:22px;color:#D4D4D8;cursor:pointer;padding:4px 10px}
   #chiudi-schermo:hover{color:#66666c}
   @media print{.area-menu,#chiudi-schermo{display:none!important}}
+  .pallino{position:absolute;top:5px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--rosso);border:2px solid #fff}
+  .striscia{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;margin-top:10px;border:0;border-radius:8px;
+    background:var(--rosato);color:var(--rosso);padding:8px 12px;font:inherit;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
+  .striscia span:last-child{font-size:20px;line-height:1}
+  .indietro{margin-top:12px;border:0;background:none;color:var(--rosso);font:inherit;font-size:14px;font-weight:600;padding:4px 0;cursor:pointer}
+  .indietro + .titolo-vista{margin-top:4px}
+  .menu-altro{margin-top:6px}
+  .voce-altro{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;border:0;border-top:1px solid var(--linea);
+    background:#fff;padding:13px 2px;font:inherit;text-align:left;cursor:pointer;color:var(--testo)}
+  .voce-altro:last-child{border-bottom:1px solid var(--linea)}
+  .voce-altro b{font-family:"Playfair Display",Georgia,serif;font-size:17.5px;font-weight:600;color:var(--blu)}
+  .voce-altro small{display:block;font-size:13px;color:#66666c;margin-top:1px}
+  .voce-altro > span:last-child{font-size:22px;color:var(--grigio)}
+  .voce-altro .attivo{display:inline-block;margin-left:8px;font-size:11px;font-weight:600;color:#fff;background:var(--rosso);border-radius:10px;padding:1px 7px;vertical-align:3px}
+  .voce-altro.riservata{margin-top:14px;border-top:1px solid var(--linea)}
+  .voce-altro.riservata b{font-family:"Open Sans",system-ui,sans-serif;font-size:14.5px;color:#66666c}
   .tuo{margin-top:8px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--rosso);font-size:13.5px}
   .tuo b{color:var(--rosso)}
 </style>
@@ -328,8 +344,7 @@
   <button data-v="prog" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Programma</button>
   <button data-v="mio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>Il mio<span class="conta" id="conta" hidden></span></button>
   <button data-v="poster"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>Poster</button>
-  <button data-v="carriera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg>Carriera</button>
-  <button data-v="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Info</button>
+  <button data-v="altro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>Altro<span class="pallino" id="pallino" hidden></span></button>
 </div></nav>
 <dialog id="dlg" aria-label="Invio"></dialog>
 
@@ -660,11 +675,11 @@ function vistaMio(t){
 }
 
 function vistaInfo(){
-  return `<h2 class="titolo-vista">Informazioni</h2>` + (dati.info.map(x => `<div class="info-voce">
+  return indietro + `<h2 class="titolo-vista">Informazioni</h2>` + (dati.info.map(x => `<div class="info-voce">
       <h3>${esc(x.voce)}</h3>${x.testo ? `<p>${esc(x.testo)}</p>` : ""}
       ${x.link ? `<a class="link" href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.etichetta || "Apri")}</a>` : ""}</div>`).join("")
     || `<div class="vuoto">Nessuna informazione.</div>`)
-    + `<div class="area"><button class="area-btn" data-pagina="chair">Area chair e organizzatori</button></div>`;
+    ;
 }
 
 function risultati(q, t){
@@ -766,12 +781,11 @@ function apriPrenota(id){
 
 /* sezione Carriera: caffè con i senior e opportunità */
 let filtroOpp = "";
-function vistaCarriera(t){
+function vistaCarriera(t, parte){
   const miei = new Set(mem.get("caffe", []));
-  let html = `<h2 class="titolo-vista">Carriera</h2>`;
-  if (dati.slot.length){
-    html += `<div class="sessp"><h3>Caffè con i senior</h3></div>
-      <p class="sotto-vista">Quindici minuti per parlare di ricerca, carriera e futuro con chi ci è già passato. Prenota un posto: la conferma arriva via email.</p>`;
+  let html = indietro + `<h2 class="titolo-vista">${parte === "caffe" ? "Caffè con i senior" : "Opportunità"}</h2>`;
+  if (parte === "caffe" && dati.slot.length){
+    html += `<p class="sotto-vista">Quindici minuti per parlare di ricerca, carriera e futuro con chi ci è già passato. Prenota un posto: la conferma arriva via email.</p>`;
     const perSenior = {};
     dati.slot.forEach(s => (perSenior[s.senior] ??= []).push(s));
     html += Object.values(perSenior).map(lista => {
@@ -791,10 +805,9 @@ function vistaCarriera(t){
   }
   const oggi = giornoRoma(t);
   const opp = dati.opportunita.filter(o => !o.scadenza || o.scadenza >= oggi);
-  if (opp.length){
+  if (parte === "opp" && opp.length){
     const tipi = [...new Set(opp.map(o => o.tipo).filter(Boolean))];
-    html += `<div class="sessp"><h3>Opportunità</h3></div>
-      <p class="sotto-vista">Posizioni di dottorato, assegni e offerte di lavoro segnalate al convegno.</p>`;
+    html += `<p class="sotto-vista">Posizioni di dottorato, assegni e offerte di lavoro segnalate al convegno.</p>`;
     if (tipi.length > 1) html += `<div class="filtri opp">${[["", "Tutte"], ...tipi.map(x => [x, x])]
       .map(([v, n]) => `<button data-opp="${esc(v)}" class="${filtroOpp === v ? "on" : ""}">${esc(n)}</button>`).join("")}</div>`;
     html += opp.filter(o => !filtroOpp || o.tipo === filtroOpp).map(o => `<div class="opp-voce">
@@ -805,7 +818,7 @@ function vistaCarriera(t){
       ${o.desc ? `<p>${esc(o.desc)}</p>` : ""}
       ${o.link ? `<a class="link" href="${esc(o.link)}" target="_blank" rel="noopener">Scopri di più</a>` : ""}</div>`).join("");
   }
-  if (!dati.slot.length && !opp.length) html += `<div class="vuoto">Presto qui trovi il caffè con i senior e le opportunità di lavoro e dottorato.</div>`;
+  if ((parte === "caffe" && !dati.slot.length) || (parte === "opp" && !opp.length)) html += `<div class="vuoto">Presto qui trovi le novità.</div>`;
   return html;
 }
 
@@ -980,32 +993,56 @@ const pulisciParola = w => String(w).toLowerCase().normalize("NFC").replace(/\s+
 function pannelloPubblico(t){
   const el = $("pubblico");
   if (vista !== "prog" && vista !== "mio"){ el.innerHTML = ""; return; }
-  let html = "";
+  const nv = nuvolaAttiva(), aperti = votiAperti(t);
+  const testo = nv && aperti.length ? "Partecipa: nuvola di parole e voto del pubblico"
+    : nv ? "Partecipa: rispondi alla domanda sullo schermo" : aperti.length ? `Il voto del pubblico è aperto fino alle ${hhmm(Math.min(...aperti.map(v => v.chiude)))}` : "";
+  el.innerHTML = testo ? `<button class="striscia" data-vai="partecipa"><span>${esc(testo)}</span><span aria-hidden="true">›</span></button>` : "";
+}
+const indietro = `<button class="indietro" data-vai="altro">‹ Altro</button>`;
+
+/* nuvola di parole: il modulo per inviare una parola */
+function bloccoNuvola(){
   const nv = nuvolaAttiva();
-  if (nv){
-    const inviate = mem.get("nuvola-" + nv.domanda, 0);
-    html += `<div class="partecipa"><div class="p-tit">Partecipa sullo schermo</div><div class="p-dom">${esc(nv.domanda)}</div>
-      ${inviate >= 3 ? `<p class="p-ok">Grazie! Guarda lo schermo della sala.</p>`
-        : `<form class="p-form" id="nv-form"><input id="nv-in" maxlength="25" placeholder="Una parola" autocomplete="off" required>
-           <button>Invia</button></form>${inviate ? `<p class="p-ok">Inviata! Puoi aggiungerne ancora ${3 - inviate}.</p>` : ""}`}</div>`;
-  }
-  const aperti = votiAperti(t);
-  if (aperti.length && vista !== "vota"){
-    const chiude = Math.min(...aperti.map(v => v.chiude));
-    html += `<div class="partecipa voto"><div class="p-tit">Voto del pubblico</div>
-      <div class="p-dom">${esc(aperti.map(v => v.categoria).join(", "))}: vota fino alle ${hhmm(chiude)}</div>
-      <button class="p-vota" data-vai="vota">Vota ora</button></div>`;
-  }
-  el.innerHTML = html;
-  const f = $("nv-form");
-  if (f) f.onsubmit = async e => {
+  if (!nv) return "";
+  const inviate = mem.get("nuvola-" + nv.domanda, 0);
+  return `<div class="partecipa"><div class="p-tit">Nuvola di parole</div><div class="p-dom">${esc(nv.domanda)}</div>
+    ${inviate >= 3 ? `<p class="p-ok">Grazie! Guarda lo schermo della sala.</p>`
+      : `<form class="p-form" id="nv-form"><input id="nv-in" maxlength="25" placeholder="Una parola" autocomplete="off" required>
+         <button>Invia</button></form>${inviate ? `<p class="p-ok">Inviata! Puoi aggiungerne ancora ${3 - inviate}.</p>` : ""}`}</div>`;
+}
+function legaNuvola(){
+  const f = $("nv-form"), nv = nuvolaAttiva();
+  if (!f || !nv) return;
+  f.onsubmit = async e => {
     e.preventDefault();
     const w = pulisciParola($("nv-in").value); if (!w) return;
     const b = f.querySelector("button"); b.disabled = true; b.textContent = "…";
     try { await inviaPubblico("nuvola", nv.domanda, w); mem.set("nuvola-" + nv.domanda, mem.get("nuvola-" + nv.domanda, 0) + 1); }
     catch(err){ alert("Invio non riuscito: controlla la connessione."); }
-    pannelloPubblico(adesso());
+    disegna();
   };
+}
+function vistaPartecipa(t){
+  const nv = bloccoNuvola(), voto = votiAperti(t).length
+    ? vistaVota(t).replace('<h2 class="titolo-vista">Voto del pubblico</h2>', '<div class="sessp"><h3>Voto del pubblico</h3></div>') : "";
+  return indietro + `<h2 class="titolo-vista">Partecipa</h2>` + (nv || voto ? nv + voto
+    : `<p class="sotto-vista">Durante il convegno qui trovi la nuvola di parole da proiettare in sala e il voto del pubblico, quando sono aperti.</p>`);
+}
+
+/* menu Altro */
+function vistaAltro(t){
+  const attivo = nuvolaAttiva() || votiAperti(t).length;
+  const oggi = giornoRoma(t);
+  const voci = [
+    ["partecipa", "Partecipa", "Nuvola di parole e voto del pubblico", attivo],
+    dati.slot.length ? ["caffe", "Caffè con i senior", "Quindici minuti con chi ci è già passato"] : null,
+    dati.opportunita.some(o => !o.scadenza || o.scadenza >= oggi) ? ["opportunita", "Opportunità", "Dottorati, assegni e lavoro"] : null,
+    ["info", "Informazioni", "Sede, presentazioni, contatti"],
+  ].filter(Boolean);
+  return `<h2 class="titolo-vista">Altro</h2><div class="menu-altro">
+    ${voci.map(([v, n, d, on]) => `<button class="voce-altro" data-vai="${v}"><span><b>${esc(n)}</b>${on ? '<span class="attivo">Attivo ora</span>' : ""}<small>${esc(d)}</small></span><span aria-hidden="true">›</span></button>`).join("")}
+    <button class="voce-altro riservata" data-pagina="chair"><span><b>Area chair e organizzatori</b><small>Accesso con password</small></span><span aria-hidden="true">›</span></button>
+  </div>`;
 }
 
 /* vista del voto */
@@ -1239,7 +1276,10 @@ function disegna(){
 
   const conta = [...preferiti].length;
   $("conta").hidden = !conta; $("conta").textContent = conta;
-  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === vista));
+  if (vista === "vota") vista = "partecipa";
+  const gruppoAltro = ["altro","partecipa","caffe","opportunita","info"];
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.v === vista || (b.dataset.v === "altro" && gruppoAltro.includes(vista))));
+  $("pallino").hidden = !(nuvolaAttiva() || votiAperti(t).length);
 
   $("barra").hidden = vista !== "prog";
   $("pdf").hidden = vista !== "prog" || !PDF_PROGRAMMA || !!cercato;
@@ -1254,10 +1294,13 @@ function disegna(){
       vista === "mio" ? vistaMio(t)
     : vista === "poster" ? vistaPoster()
     : vista === "info" ? vistaInfo()
-    : vista === "carriera" ? vistaCarriera(t)
-    : vista === "vota" ? vistaVota(t)
+    : vista === "altro" ? vistaAltro(t)
+    : vista === "partecipa" ? vistaPartecipa(t)
+    : vista === "caffe" ? vistaCarriera(t, "caffe")
+    : vista === "opportunita" ? vistaCarriera(t, "opp")
     : cercato.length >= 2 ? risultati(cercato, t) : elencoGiorno(scelta, t);
 
+  legaNuvola();
   if (scorriAdesso && vista === "prog" && $("adesso")) $("adesso").scrollIntoView({block:"center"});
   scorriAdesso = false;
 }

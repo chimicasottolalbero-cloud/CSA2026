@@ -1,6 +1,6 @@
 // Tiene in memoria l'app per usarla anche senza rete.
 // Quando pubblichi una nuova versione dei file, cambia il numero qui sotto.
-const VERSIONE = "csa-7";
+const VERSIONE = "csa-8";
 const FILE = ["./", "index.html", "manifest.webmanifest", "icona-192.png", "icona-512.png", "icona-180.png"];
 
 self.addEventListener("install", e => {
