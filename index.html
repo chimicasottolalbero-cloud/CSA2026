@@ -280,6 +280,16 @@
   .cl-metodo{margin-top:14px;padding:10px 12px;border-radius:8px;background:var(--azzurro);font-size:13.5px;line-height:1.45}
   body.classifica .wrap{max-width:900px}
   @media print{.carica,.cl-az,.cl-schede,.demo-bar{display:none!important}}
+  .area{margin-top:24px;padding-top:14px;border-top:1px solid var(--linea);text-align:center}
+  .area-btn,.torna-app{border:0;background:none;color:#66666c;font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:6px}
+  .torna-app{margin-top:14px}
+  .area-menu{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+  .area-menu button{border:1px solid var(--linea);background:#fff;border-radius:14px;padding:4px 12px;font:inherit;font-size:13px;color:var(--blu);cursor:pointer}
+  .area-menu button.on{background:var(--blu);border-color:var(--blu);color:#fff}
+  .area-menu .torna{margin-left:auto;border:0;color:var(--rosso);font-weight:600}
+  #chiudi-schermo{position:fixed;top:6px;right:8px;z-index:20;border:0;background:none;font-size:22px;color:#D4D4D8;cursor:pointer;padding:4px 10px}
+  #chiudi-schermo:hover{color:#66666c}
+  @media print{.area-menu,#chiudi-schermo{display:none!important}}
   .tuo{margin-top:8px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--rosso);font-size:13.5px}
   .tuo b{color:var(--rosso)}
 </style>
@@ -653,7 +663,8 @@ function vistaInfo(){
   return `<h2 class="titolo-vista">Informazioni</h2>` + (dati.info.map(x => `<div class="info-voce">
       <h3>${esc(x.voce)}</h3>${x.testo ? `<p>${esc(x.testo)}</p>` : ""}
       ${x.link ? `<a class="link" href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.etichetta || "Apri")}</a>` : ""}</div>`).join("")
-    || `<div class="vuoto">Nessuna informazione.</div>`);
+    || `<div class="vuoto">Nessuna informazione.</div>`)
+    + `<div class="area"><button class="area-btn" data-pagina="chair">Area chair e organizzatori</button></div>`;
 }
 
 function risultati(q, t){
@@ -840,7 +851,8 @@ function schermataAccesso(titolo = "Modalità chair", sotto = "Accesso riservato
       <label>Password<input name="pw" type="password" required autocomplete="current-password"></label>
       <p class="esito" id="acc-esito"></p>
       <button class="acc-ok">Entra</button>
-    </form>`;
+    </form>
+    <button class="torna-app" data-pagina="">Torna all'app</button>`;
   $("accesso").onsubmit = async e => {
     e.preventDefault();
     const f = new FormData(e.target);
@@ -861,7 +873,7 @@ function disegnaChair(){
   if (!sale.includes(chairSala)) chairSala = sale[0];
   const giorno = dati.giorni.includes(oggi) ? oggi : (scelta || dati.giorni[0]);
   if (!dati.giorni.includes(chairGiorno)) chairGiorno = giorno;
-  const testa = `<div class="chair-testa"><h2 class="titolo-vista">Modalità chair</h2>
+  const testa = menuArea("chair") + `<div class="chair-testa"><h2 class="titolo-vista">Modalità chair</h2>
       <span>${esc(mem.get("chair-nome", ""))} · <button class="esci" id="esci">Esci</button></span></div>
     <div class="schede chair-schede"><button data-ctab="domande" class="${chairTab === "domande" ? "on" : ""}">Domande</button>
       <button data-ctab="punteggi" class="${chairTab === "punteggi" ? "on" : ""}">Punteggi</button></div>
@@ -1058,6 +1070,7 @@ function disegnaSchermo(){
   if (!dati) return;
   document.body.classList.add("schermo");
   const link = location.origin + location.pathname;
+  if (!$("chiudi-schermo")) document.body.insertAdjacentHTML("beforeend", `<button id="chiudi-schermo" data-pagina="chair" aria-label="Torna all'area chair">×</button>`);
   if (SCHERMO === "nuvola"){
     const nv = nuvolaAttiva() || dati.nuvola[0];
     const conta = {};
@@ -1134,7 +1147,7 @@ function disegnaClassifica(){
   if (!dati) return;
   document.body.classList.add("schermo", "classifica");
   if (!chairEntrato()) return schermataAccesso("Classifica punteggi", "Accesso riservato agli organizzatori.", disegnaClassifica);
-  let html = `<h2 class="titolo-vista">Classifica punteggi</h2>
+  let html = menuArea("classifica") + `<h2 class="titolo-vista">Classifica punteggi</h2>
     <p class="sotto-vista">Nel foglio dei punteggi: File › Scarica › Valori separati da virgola (.csv), poi carica qui il file.
       I dati restano su questo computer.</p>
     <label class="carica">${valutazioni ? "Carica un altro file" : "Carica il file CSV"}<input type="file" id="csv-in" accept=".csv,text/csv"></label>
@@ -1186,6 +1199,19 @@ function disegnaClassifica(){
   };
   if ($("cl-stampa")) $("cl-stampa").onclick = () => window.print();
 }
+
+/* passaggio tra app, area chair e schermi della sala */
+function apriPagina(nome){
+  const q = new URLSearchParams(location.search), n = new URLSearchParams();
+  if (q.get("ora")) n.set("ora", q.get("ora"));
+  let cerca = n.toString();
+  if (nome) cerca += (cerca ? "&" : "") + nome;
+  location.search = cerca;
+}
+const menuArea = attiva => `<div class="area-menu">
+    ${[["chair","Domande e punteggi"],["classifica","Classifica"],["nuvola","Schermo nuvola"],["risultati","Schermo voto"]]
+      .map(([k, n]) => `<button data-pagina="${k}" class="${attiva === k ? "on" : ""}">${n}</button>`).join("")}
+    <button data-pagina="" class="torna">Torna all'app</button></div>`;
 
 /* disegno */
 function disegna(){
@@ -1251,6 +1277,7 @@ $("lista").addEventListener("click", e => {
   mem.set("preferiti", [...preferiti]); disegna();
 });
 document.addEventListener("click", e => {
+  const pg = e.target.closest("[data-pagina]"); if (pg){ apriPagina(pg.dataset.pagina); return; }
   const q = e.target.closest(".chiedi"); if (q){ apriDomanda(q.dataset.q); return; }
   const f = e.target.closest(".fascia"); if (f && !f.disabled){ apriPrenota(f.dataset.slot); return; }
   const o = e.target.closest("[data-opp]"); if (o){ filtroOpp = o.dataset.opp; disegna(); return; }
